@@ -11,6 +11,7 @@ const connectDB = require('./config/db');
 const errorHandler = require('./middlewares/errorHandler');
 const logger = require('./utils/logger');
 const { apiLimiter } = require('./middlewares/rateLimiter');
+const { autoSeedIfEmpty } = require('./services/seedService');
 
 // Import Route Handlers
 const authRoutes = require('./routes/authRoutes');
@@ -62,6 +63,16 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/excel', excelRoutes);
 app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/upload', uploadRoutes);
+
+// Database Seeding Route
+app.get('/api/seed', async (req, res, next) => {
+  try {
+    const result = await autoSeedIfEmpty();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Legacy Apps Script Compatibility Route Adapter (`/exec` or `GET/POST /api`)
 const handleLegacyAction = async (req, res, next) => {
