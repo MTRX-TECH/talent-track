@@ -3,23 +3,25 @@ const ROLE_RANKS = {
   admin: 4,
   hod: 3,
   mentor: 2,
+  faculty: 2,
   student: 1,
 };
 
-const authorize = (...allowedRoles) => {
+const authorize = (allowedRoles) => {
+  const rolesArr = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'User not authenticated' });
     }
 
-    const userRole = req.user.role.toLowerCase();
+    const userRole = (req.user.role || '').toLowerCase();
 
     // SuperAdmin always has full access
     if (userRole === 'superadmin') {
       return next();
     }
 
-    if (allowedRoles.includes(userRole)) {
+    if (rolesArr.includes(userRole)) {
       return next();
     }
 
@@ -50,4 +52,8 @@ const minRole = (requiredRole) => {
   };
 };
 
-module.exports = { authorize, minRole };
+const roleMiddleware = authorize;
+roleMiddleware.authorize = authorize;
+roleMiddleware.minRole = minRole;
+
+module.exports = roleMiddleware;
