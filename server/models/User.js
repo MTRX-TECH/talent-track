@@ -1,20 +1,34 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  customId: { type: String, unique: true }, // Legacy compatible ID (16 char hex string)
-  name: { type: String, required: true, trim: true },
-  username: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true },
-  role: {
-    type: String,
-    enum: ['superadmin', 'admin', 'hod', 'mentor', 'student'],
-    required: true,
+const userSchema = new mongoose.Schema(
+  {
+    tenantId: { type: String, required: true, default: 'TNT_GLOBAL', index: true },
+    institutionId: { type: String, required: true, default: 'INST_GLOBAL', index: true },
+    customId: { type: String, unique: true }, // Legacy compatible ID
+    name: { type: String, required: true, trim: true },
+    username: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, lowercase: true, trim: true, default: '' },
+    mobile: { type: String, default: '' },
+    password: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ['superadmin', 'admin', 'hod', 'faculty', 'mentor', 'student', 'parent'],
+      required: true,
+      index: true,
+    },
+    domain: { type: String, default: '' }, // Class or Department name
+    departmentId: { type: String, default: '' },
+    mentorId: { type: String, default: '' },
+    isSuspended: { type: Boolean, default: false },
+    status: { type: String, enum: ['active', 'disabled'], default: 'active', index: true },
+    lastLogin: { type: Date, default: null },
   },
-  domain: { type: String, default: '' }, // Class or Department name (e.g. CSE, ECE)
-  mentorId: { type: String, default: '' }, // Legacy string or MongoDB ObjectId string
-  isSuspended: { type: Boolean, default: false },
-}, { timestamps: true });
+  { timestamps: true }
+);
+
+userSchema.index({ tenantId: 1, role: 1 });
+userSchema.index({ tenantId: 1, username: 1 });
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

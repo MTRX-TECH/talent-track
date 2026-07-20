@@ -1,174 +1,133 @@
+const Institution = require('../models/Institution');
 const User = require('../models/User');
+const Payment = require('../models/Payment');
+const SubscriptionPlan = require('../models/SubscriptionPlan');
 const ActivityLog = require('../models/ActivityLog');
 const AuditLog = require('../models/AuditLog');
-const SystemSetting = require('../models/SystemSetting');
-const Milestone = require('../models/Milestone');
-const Goal = require('../models/Goal');
-const Department = require('../models/Department');
-const Notification = require('../models/Notification');
-const crypto = require('crypto');
+const SchedulerLog = require('../models/SchedulerLog');
 
-const genId = () => crypto.randomBytes(8).toString('hex');
-
-const getSystemAnalytics = async (req, res, next) => {
+const getBillingAnalytics = async (req, res, next) => {
   try {
-    const [userCounts, milestoneCount, goalCount, deptCount, activityCount] = await Promise.all([
-      User.aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }]),
-      Milestone.countDocuments(),
-      Goal.countDocuments(),
-      Department.countDocuments(),
-      ActivityLog.countDocuments(),
+    const [institutions, payments, plans] = await Promise.all([
+      Institution.find(),
+      Payment.find({ status: 'completed' }),
+      SubscriptionPlan.find(),
     ]);
 
-    const roleStats = {};
-    userCounts.forEach(item => {
-      roleStats[item._id] = item.count;
+    const totalRevenue = payments.reduce((sum, p) => sum + (p.finalAmount || 0), 0);
+
+    let mrr = 0;
+    let arr = 0;
+    let activeMonthlySubscribers = 0;
+    let activeYearlySubscribers = 0;
+    let freePremiumCount = 0;
+    let trialCount = 0;
+    let gracePeriodCount = 0;
+
+    institutions.forEach(inst => {
+      const sub = inst.subscription || {};
+      if (sub.freePremiumStatus === 'enabled') {
+        freePremiumCount++;
+      } else if (sub.trialStatus === 'in_trial') {
+        trialCount++;
+      } else if (sub.status === 'grace_period') {
+        gracePeriodCount++;
+      } else if (sub.status === 'active') {
+        if (sub.planCode === 'basic') {
+          if (sub.billingCycle === 'yearly') { activeYearlySubscribers++; mrr += 500; arr += 6000; }
+          else { activeMonthlySubscribers++; mrr += 600; arr += 7200; }
+        } else if (sub.planCode === 'standard') {
+          if (sub.billingCycle === 'yearly') { activeYearlySubscribers++; mrr += 1000; arr += 12000; }
+          else { activeMonthlySubscribers++; mrr += 1200; arr += 14400; }
+        } else if (sub.planCode === 'premium') {
+          if (sub.billingCycle === 'yearly') { activeYearlySubscribers++; mrr += 1666; arr += 20000; }
+          else { activeMonthlySubscribers++; mrr += 2000; arr += 24000; }
+        }
+      }
     });
 
     res.json({
       success: true,
       analytics: {
-        usersByRole: roleStats,
-        totalMilestones: milestoneCount,
-        totalGoals: goalCount,
-        totalDepartments: deptCount,
-        totalActivitiesLogged: activityCount,
+        totalRevenue,
+        mrr: Math.round(mrr),
+        arr: Math.round(arr),
+        activeMonthlySubscribers,
+        activeYearlySubscribers,
+        freePremiumCount,
+        trialCount,
+        gracePeriodCount,
+        totalInstitutions: institutions.length,
+        plans,
       },
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
-const getActivityLogs = async (req, res, next) => {
+const getSubscriptionPlansMaster = async (req, res, next) => {
   try {
-    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(100);
-    res.json({ success: true, logs: logs.map(l => l.toJSON()) });
-  } catch (error) {
-    next(error);
+    const plans = await SubscriptionPlan.find().sort({ monthlyPrice: 1 });
+    res.json({ success: true, plans });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateSubscriptionPlanMaster = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const plan = await SubscriptionPlan.findByIdAndUpdate(id, req.body, { new: true });
+    if (!plan) return res.status(404).json({ success: false, error: 'Subscription plan not found' });
+    res.json({ success: true, plan });
+  } catch (err) {
+    next(err);
   }
 };
 
 const getAuditLogs = async (req, res, next) => {
   try {
     const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(100);
-    res.json({ success: true, logs: logs.map(l => l.toJSON()) });
-  } catch (error) {
-    next(error);
+    const schedulerLogs = await SchedulerLog.find().sort({ createdAt: -1 }).limit(20);
+    res.json({ success: true, logs, schedulerLogs });
+  } catch (err) {
+    next(err);
   }
 };
 
 const backupDatabase = async (req, res, next) => {
   try {
-    const [users, milestones, goals, departments, notifications, activityLogs] = await Promise.all([
-      User.find().select('-password'),
-      Milestone.find(),
-      Goal.find(),
-      Department.find(),
-      Notification.find(),
-      ActivityLog.find(),
+    const [institutions, users, plans, payments, auditLogs] = await Promise.all([
+      Institution.find(),
+      User.find(),
+      SubscriptionPlan.find(),
+      Payment.find(),
+      AuditLog.find().limit(500),
     ]);
 
-    const backupData = {
-      version: '1.0',
+    const backup = {
       timestamp: new Date().toISOString(),
-      collections: {
-        users,
-        milestones,
-        goals,
-        departments,
-        notifications,
-        activityLogs,
-      },
+      version: '2.0-Enterprise',
+      institutions,
+      users,
+      plans,
+      payments,
+      auditLogs,
     };
 
-    res.header('Content-Type', 'application/json');
-    res.attachment(`talenttrack_backup_${Date.now()}.json`);
-    return res.send(JSON.stringify(backupData, null, 2));
-  } catch (error) {
-    next(error);
-  }
-};
-
-const restoreDatabase = async (req, res, next) => {
-  try {
-    const { backup } = req.body;
-    if (!backup || !backup.collections) {
-      return res.status(400).json({ success: false, error: 'Invalid backup structure' });
-    }
-
-    const { users, milestones, goals, departments } = backup.collections;
-
-    if (users && users.length) {
-      await User.deleteMany({ role: { $ne: 'superadmin' } });
-      for (const u of users) {
-        if (u.role !== 'superadmin') {
-          await User.create({
-            customId: u.customId || genId(),
-            name: u.name,
-            username: u.username,
-            password: u.password || 'password123',
-            role: u.role,
-            domain: u.domain || '',
-            mentorId: u.mentorId || '',
-          });
-        }
-      }
-    }
-
-    if (milestones && milestones.length) {
-      await Milestone.deleteMany({});
-      await Milestone.insertMany(milestones);
-    }
-
-    if (goals && goals.length) {
-      await Goal.deleteMany({});
-      await Goal.insertMany(goals);
-    }
-
-    if (departments && departments.length) {
-      await Department.deleteMany({});
-      await Department.insertMany(departments);
-    }
-
-    res.json({ success: true, message: 'Database restored successfully.' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getSettings = async (req, res, next) => {
-  try {
-    const settings = await SystemSetting.find();
-    res.json({ success: true, settings });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateSetting = async (req, res, next) => {
-  try {
-    const { key, value } = req.body;
-    if (!key) return res.status(400).json({ success: false, error: 'Setting key required' });
-
-    const setting = await SystemSetting.findOneAndUpdate(
-      { key },
-      { key, value, updatedBy: req.user.username },
-      { upsert: true, new: true }
-    );
-
-    res.json({ success: true, setting });
-  } catch (error) {
-    next(error);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename=talenttrack-backup-${Date.now()}.json`);
+    res.send(JSON.stringify(backup, null, 2));
+  } catch (err) {
+    next(err);
   }
 };
 
 module.exports = {
-  getSystemAnalytics,
-  getActivityLogs,
+  getBillingAnalytics,
+  getSubscriptionPlansMaster,
+  updateSubscriptionPlanMaster,
   getAuditLogs,
   backupDatabase,
-  restoreDatabase,
-  getSettings,
-  updateSetting,
 };

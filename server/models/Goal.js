@@ -1,13 +1,20 @@
 const mongoose = require('mongoose');
 
-const goalSchema = new mongoose.Schema({
-  customId: { type: String, unique: true },
-  studentId: { type: String, required: true },
-  target: { type: Number, required: true, default: 0 },
-  achieved: { type: Number, default: 0 },
-  unit: { type: String, default: 'milestones' },
-  dueDate: { type: String, default: '' },
-}, { timestamps: true });
+const goalSchema = new mongoose.Schema(
+  {
+    tenantId: { type: String, required: true, default: 'TNT_GLOBAL', index: true },
+    institutionId: { type: String, required: true, default: 'INST_GLOBAL', index: true },
+    customId: { type: String, unique: true },
+    studentId: { type: String, required: true, index: true },
+    target: { type: Number, required: true },
+    achieved: { type: Number, default: 0 },
+    unit: { type: String, default: 'milestones' },
+    dueDate: { type: String, default: '' },
+  },
+  { timestamps: true }
+);
+
+goalSchema.index({ tenantId: 1, studentId: 1 });
 
 goalSchema.methods.toJSON = function () {
   const obj = this.toObject();

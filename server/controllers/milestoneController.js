@@ -7,43 +7,29 @@ const genId = () => crypto.randomBytes(8).toString('hex');
 
 const addMilestone = async (req, res, next) => {
   try {
-    const { studentId, title, description, category, date, imageUrl } = req.body;
+    const { studentId, studentName, title, category, description, imageUrl, date } = req.body;
 
-    if (!studentId || !title) {
-      return res.status(400).json({ success: false, error: 'studentId and title required.' });
+    if (!title || !studentId) {
+      return res.status(400).json({ success: false, error: 'Title and studentId are required.' });
     }
 
-    const student = await User.findOne({
-      $or: [{ customId: studentId }, { _id: studentId.match(/^[0-9a-fA-F]{24}$/) ? studentId : null }],
-    });
+    const tenantId = req.tenantId || (req.user ? req.user.tenantId : 'TNT_GLOBAL');
+    const institutionId = req.institutionId || (req.user ? req.user.institutionId : 'INST_GLOBAL');
 
-    const milestoneCustomId = genId();
+    const customId = genId();
     const milestone = await Milestone.create({
-      customId: milestoneCustomId,
+      tenantId,
+      institutionId,
+      customId,
       studentId,
-      studentName: req.body.studentName || (student ? student.name : ''),
+      studentName: studentName || (req.user ? req.user.name : 'Student'),
       title,
-      description: description || '',
       category: category || 'General',
-      date: date || new Date().toISOString().split('T')[0],
+      description: description || '',
       imageUrl: imageUrl || '',
-      verified: 'false',
-      mentorFeedback: '',
+      date: date || new Date().toISOString().split('T')[0],
+      verified: 'pending',
     });
-
-    if (student && student.mentorId) {
-      const mentor = await User.findOne({
-        $or: [{ customId: student.mentorId }, { _id: student.mentorId.match(/^[0-9a-fA-F]{24}$/) ? student.mentorId : null }],
-      });
-      if (mentor) {
-        await Notification.create({
-          customId: genId(),
-          userId: mentor.customId || mentor._id.toString(),
-          message: `${milestone.studentName} added a new milestone: "${milestone.title}"`,
-          type: 'milestone',
-        });
-      }
-    }
 
     res.json({ success: true, milestone: milestone.toJSON() });
   } catch (error) {
@@ -53,39 +39,19 @@ const addMilestone = async (req, res, next) => {
 
 const getMilestones = async (req, res, next) => {
   try {
-    const query = req.query || {};
-    let filter = {};
+    const { studentId, category, verified } = req.query;
+    const filter = {};
 
-    if (query.studentId) {
-      filter.studentId = query.studentId;
+    if (req.user && req.user.role !== 'superadmin') {
+      filter.tenantId = req.tenantId || req.user.tenantId;
     }
 
-    if (query.verified !== undefined && query.verified !== '') {
-      filter.verified = String(query.verified);
-    }
+    if (studentId) filter.studentId = studentId;
+    if (category && category !== 'all') filter.category = category;
+    if (verified) filter.verified = verified;
 
-    if (query.category && query.category !== 'all') {
-      filter.category = query.category;
-    }
-
-    let milestones = await Milestone.find(filter).sort({ createdAt: -1 });
-    let mapped = milestones.map(m => m.toJSON());
-
-    // Mentor / Class filter filtering
-    const className = query.className || query.class;
-    if (className || query.mentorId) {
-      const userFilter = { role: 'student' };
-      if (className) userFilter.domain = className;
-      if (query.mentorId) userFilter.mentorId = query.mentorId;
-
-      const matchedStudents = await User.find(userFilter);
-      const studentIds = matchedStudents.map(s => s.customId || s._id.toString());
-      mapped = mapped.filter(m => studentIds.includes(m.studentId));
-    }
-
-    if (query.limit) {
-      mapped = mapped.slice(0, Number(query.limit));
-    }
+    const milestones = await Milestone.find(filter).sort({ createdAt: -1 });
+    const mapped = milestones.map(m => m.toJSON());
 
     res.json({ success: true, milestones: mapped });
   } catch (error) {
@@ -96,40 +62,35 @@ const getMilestones = async (req, res, next) => {
 const verifyMilestone = async (req, res, next) => {
   try {
     const { id, verified, mentorFeedback } = req.body;
-
-    if (!id) {
-      return res.status(400).json({ success: false, error: 'Milestone id required.' });
+    if (!id || verified === undefined) {
+      return res.status(400).json({ success: false, error: 'id and verified status required.' });
     }
 
-    const milestone = await Milestone.findOne({
+    const filter = {
       $or: [{ customId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
-    });
+    };
+    if (req.user && req.user.role !== 'superadmin') {
+      filter.tenantId = req.tenantId;
+    }
 
+    const milestone = await Milestone.findOne(filter);
     if (!milestone) {
       return res.status(404).json({ success: false, error: 'Milestone not found.' });
     }
 
     milestone.verified = String(verified);
-    if (mentorFeedback !== undefined) {
-      milestone.mentorFeedback = mentorFeedback;
-    }
+    if (mentorFeedback !== undefined) milestone.mentorFeedback = mentorFeedback;
     await milestone.save();
 
-    const isApproved = String(verified) === 'true';
     await Notification.create({
-      customId: genId(),
+      tenantId: milestone.tenantId,
+      institutionId: milestone.institutionId,
       userId: milestone.studentId,
-      message: isApproved
-        ? `Your milestone "${milestone.title}" was verified.`
-        : `Your milestone "${milestone.title}" needs revision. Feedback: ${milestone.mentorFeedback || 'None'}`,
+      message: `Your milestone "${milestone.title}" was ${String(verified) === 'true' ? 'Verified' : 'marked for revision'}.`,
       type: 'verification',
     });
 
-    res.json({
-      success: true,
-      message: 'Milestone updated.',
-      milestone: milestone.toJSON(),
-    });
+    res.json({ success: true, milestone: milestone.toJSON() });
   } catch (error) {
     next(error);
   }
@@ -140,14 +101,14 @@ const deleteMilestone = async (req, res, next) => {
     const { id } = req.body.id ? req.body : req.params;
     const targetId = id || req.body.id;
 
-    if (!targetId) {
-      return res.status(400).json({ success: false, error: 'Milestone id required.' });
+    const filter = {
+      $or: [{ customId: targetId }, { _id: targetId.match(/^[0-9a-fA-F]{24}$/) ? targetId : null }],
+    };
+    if (req.user && req.user.role !== 'superadmin') {
+      filter.tenantId = req.tenantId;
     }
 
-    const milestone = await Milestone.findOneAndDelete({
-      $or: [{ customId: targetId }, { _id: targetId.match(/^[0-9a-fA-F]{24}$/) ? targetId : null }],
-    });
-
+    const milestone = await Milestone.findOneAndDelete(filter);
     if (!milestone) {
       return res.status(404).json({ success: false, error: 'Milestone not found.' });
     }

@@ -1,20 +1,23 @@
 const mongoose = require('mongoose');
 
-const auditLogSchema = new mongoose.Schema({
-  actorId: { type: String, required: true },
-  actorName: { type: String, default: '' },
-  actorRole: { type: String, default: '' },
-  action: { type: String, required: true },
-  targetModel: { type: String, default: '' },
-  targetId: { type: String, default: '' },
-  changes: { type: mongoose.Schema.Types.Mixed, default: {} },
-}, { timestamps: true });
+const auditLogSchema = new mongoose.Schema(
+  {
+    tenantId: { type: String, default: 'TNT_GLOBAL', index: true },
+    institutionId: { type: String, default: 'INST_GLOBAL', index: true },
+    timestamp: { type: Date, default: Date.now, index: true },
+    userId: { type: String, default: '' },
+    userName: { type: String, default: '' },
+    userRole: { type: String, default: '' },
+    action: { type: String, required: true }, // e.g. 'CREATED_INSTITUTION', 'GRANTED_FREE_PREMIUM', 'EXPIRED_TRIAL', 'DELETED_TENANT'
+    targetModel: { type: String, default: '' },
+    targetId: { type: String, default: '' },
+    oldValue: { type: mongoose.Schema.Types.Mixed, default: null },
+    newValue: { type: mongoose.Schema.Types.Mixed, default: null },
+    ipAddress: { type: String, default: '' },
+  },
+  { timestamps: true }
+);
 
-auditLogSchema.methods.toJSON = function () {
-  const obj = this.toObject();
-  obj.id = obj._id.toString();
-  delete obj.__v;
-  return obj;
-};
+auditLogSchema.index({ tenantId: 1, timestamp: -1 });
 
 module.exports = mongoose.model('AuditLog', auditLogSchema);

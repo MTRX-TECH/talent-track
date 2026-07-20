@@ -6,7 +6,9 @@ const genId = () => crypto.randomBytes(8).toString('hex');
 
 const createUser = async (req, res, next) => {
   try {
-    const { name, username, password, role, domain, mentorId } = req.body;
+    const { name, username, password, role, domain, mentorId, email, mobile } = req.body;
+    const tenantId = req.tenantId || (req.user ? req.user.tenantId : 'TNT_GLOBAL');
+    const institutionId = req.institutionId || (req.user ? req.user.institutionId : 'INST_GLOBAL');
 
     if (!name || !username || !password || !role) {
       return res.status(400).json({ success: false, error: 'name, username, password, role required.' });
@@ -19,9 +21,13 @@ const createUser = async (req, res, next) => {
 
     const customId = genId();
     const user = await User.create({
+      tenantId,
+      institutionId,
       customId,
       name,
       username: username.toLowerCase(),
+      email: email || username.toLowerCase(),
+      mobile: mobile || '',
       password,
       role: role.toLowerCase(),
       domain: domain || '',
@@ -39,8 +45,12 @@ const getUsers = async (req, res, next) => {
     const query = req.query || {};
     const filter = {};
 
+    if (req.user && req.user.role !== 'superadmin') {
+      filter.tenantId = req.tenantId || req.user.tenantId;
+    }
+
     if (query.role) filter.role = query.role.toLowerCase();
-    
+
     const domainVal = query.domain || query.className || query.class;
     if (domainVal) filter.domain = domainVal;
 
@@ -74,9 +84,14 @@ const assignMentor = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'studentId and mentorId required.' });
     }
 
-    const student = await User.findOne({
+    const filter = {
       $or: [{ customId: studentId }, { _id: studentId.match(/^[0-9a-fA-F]{24}$/) ? studentId : null }],
-    });
+    };
+    if (req.user && req.user.role !== 'superadmin') {
+      filter.tenantId = req.tenantId;
+    }
+
+    const student = await User.findOne(filter);
 
     if (!student) {
       return res.status(404).json({ success: false, error: 'Student not found.' });
@@ -86,7 +101,8 @@ const assignMentor = async (req, res, next) => {
     await student.save();
 
     await Notification.create({
-      customId: genId(),
+      tenantId: student.tenantId,
+      institutionId: student.institutionId,
       userId: student.customId || student._id.toString(),
       message: 'A mentor has been assigned to you.',
       type: 'mentor',
@@ -107,9 +123,14 @@ const deleteUser = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'User id required.' });
     }
 
-    const user = await User.findOneAndDelete({
+    const filter = {
       $or: [{ customId: targetId }, { _id: targetId.match(/^[0-9a-fA-F]{24}$/) ? targetId : null }],
-    });
+    };
+    if (req.user && req.user.role !== 'superadmin') {
+      filter.tenantId = req.tenantId;
+    }
+
+    const user = await User.findOneAndDelete(filter);
 
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found.' });
@@ -124,9 +145,14 @@ const deleteUser = async (req, res, next) => {
 const suspendUser = async (req, res, next) => {
   try {
     const { id, isSuspended } = req.body;
-    const user = await User.findOne({
+    const filter = {
       $or: [{ customId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
-    });
+    };
+    if (req.user && req.user.role !== 'superadmin') {
+      filter.tenantId = req.tenantId;
+    }
+
+    const user = await User.findOne(filter);
 
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found.' });

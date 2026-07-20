@@ -12,7 +12,9 @@ const connectDB = require('./config/db');
 const errorHandler = require('./middlewares/errorHandler');
 const logger = require('./utils/logger');
 const { apiLimiter } = require('./middlewares/rateLimiter');
+const tenantMiddleware = require('./middlewares/tenantMiddleware');
 const { autoSeedIfEmpty } = require('./services/seedService');
+const { startScheduler } = require('./services/schedulerService');
 
 // Import Route Handlers
 const authRoutes = require('./routes/authRoutes');
@@ -25,6 +27,9 @@ const departmentRoutes = require('./routes/departmentRoutes');
 const excelRoutes = require('./routes/excelRoutes');
 const superAdminRoutes = require('./routes/superAdminRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const institutionRoutes = require('./routes/institutionRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Controllers for Legacy Compatibility Adapter
 const authController = require('./controllers/authController');
@@ -45,6 +50,9 @@ if (!fs.existsSync(uploadDir)) {
 // Connect MongoDB
 connectDB();
 
+// Start Automated Subscription Lifecycle Background Scheduler
+startScheduler();
+
 // Security & Logging Middlewares
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: '*', credentials: true }));
@@ -59,6 +67,9 @@ app.use(express.static(path.join(__dirname, '../client')));
 // Rate Limiter for APIs
 app.use('/api/', apiLimiter);
 
+// Multi-Tenant Isolation Middleware
+app.use('/api/', tenantMiddleware);
+
 // REST API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -70,6 +81,9 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/excel', excelRoutes);
 app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/institutions', institutionRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Database Seeding Route
 app.get('/api/seed', async (req, res, next) => {
@@ -135,7 +149,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
-    service: 'TalentTrack Enterprise API',
+    service: 'TalentTrack Enterprise Multi-Tenant SaaS API',
   });
 });
 
@@ -150,7 +164,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
-  console.log(`TalentTrack Enterprise Server running on port ${PORT}`);
+  console.log(`TalentTrack Enterprise SaaS Server running on port ${PORT}`);
   console.log(`API Endpoint: http://0.0.0.0:${PORT}/api`);
   console.log(`====================================================`);
 });

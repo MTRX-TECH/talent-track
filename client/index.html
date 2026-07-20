@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TalentTrack — Enterprise Student Milestone Tracker</title>
+<title>TalentTrack — Multi-Tenant SaaS Campus Management System (MTRX TECH)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -31,14 +31,15 @@
   --font-head:  'Syne', sans-serif;
   --font-body:  'DM Sans', sans-serif;
 
-  /* role themes — overridden per role */
+  /* role themes */
   --role-primary: #7c3aed;
   --role-glow:    rgba(124,58,237,0.25);
 }
 [data-role="superadmin"] { --role-primary: #d4af37; --role-glow: rgba(212,175,55,0.25); }
 [data-role="admin"],
 [data-role="hod"]     { --role-primary: #7c3aed; --role-glow: rgba(124,58,237,0.25); }
-[data-role="mentor"]  { --role-primary: #10b981; --role-glow: rgba(16,185,129,0.25); }
+[data-role="mentor"],
+[data-role="faculty"] { --role-primary: #10b981; --role-glow: rgba(16,185,129,0.25); }
 [data-role="student"] { --role-primary: #3b82f6; --role-glow: rgba(59,130,246,0.25); }
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,12 +52,10 @@ body {
   overflow-x: hidden;
 }
 
-/* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-/* ── UTILITIES ───────────────────────────────────────────── */
 .hidden   { display: none !important; }
 .flex     { display: flex; }
 .gap-2    { gap: 8px; }
@@ -187,17 +186,6 @@ body {
 .btn-green { background: var(--green); color: #fff; }
 .btn-green:hover { opacity: .85; }
 
-.login-hint {
-  margin-top: 20px;
-  padding: 12px 14px;
-  background: rgba(255,255,255,0.03);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
 .login-error {
   margin-top: 12px;
   padding: 10px 14px;
@@ -210,7 +198,6 @@ body {
 
 #appShell { display: flex; min-height: 100vh; }
 
-/* ── SIDEBAR ─────────────────────────────────────────────── */
 .sidebar {
   width: 240px;
   flex-shrink: 0;
@@ -304,7 +291,6 @@ body {
   color: #fff;
 }
 
-/* ── MAIN ────────────────────────────────────────────────── */
 .main {
   flex: 1;
   margin-left: 240px;
@@ -360,7 +346,6 @@ body {
 .panel.active { display: block; animation: fadeIn .2s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ── DASHBOARD CARDS ─────────────────────────────────────── */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -416,7 +401,6 @@ body {
 }
 .chart-title { font-family: var(--font-head); font-size: 14px; font-weight: 700; margin-bottom: 16px; }
 
-/* ── MILESTONE CARDS ─────────────────────────────────────── */
 .feed-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -464,6 +448,7 @@ body {
 .badge-verified { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
 .badge-rejected { background: rgba(239,68,68,0.15);  color: var(--red);   border: 1px solid rgba(239,68,68,0.3); }
 .badge-cat      { background: var(--glass-b); color: var(--text); border: 1px solid var(--border); }
+.badge-gold     { background: rgba(212,175,55,0.2); color: var(--gold); border: 1px solid var(--gold); }
 
 .ms-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; }
 .ms-desc  { font-size: 13px; color: var(--muted); line-height: 1.5; }
@@ -476,58 +461,6 @@ body {
   background: var(--glass);
 }
 
-/* ── LEADERBOARD ────────────────────────────────────────── */
-.leaderboard-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  transition: background .15s;
-}
-.leaderboard-item:hover { background: var(--glass); }
-.leaderboard-item.active { background: var(--role-glow); border: 1px solid var(--role-primary); }
-.rank {
-  width: 28px; height: 28px;
-  border-radius: 8px;
-  background: var(--glass);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-head);
-  font-size: 13px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-.rank.gold   { background: rgba(245,158,11,0.2); color: var(--orange); }
-.rank.silver { background: rgba(156,163,175,0.2); color: #9ca3af; }
-.rank.bronze { background: rgba(180,120,80,0.2); color: #c97b4b; }
-
-/* ── NOTIFICATIONS PANEL ──────────────────────────────────── */
-.notif-list { display: flex; flex-direction: column; gap: 8px; }
-.notif-item {
-  display: flex;
-  gap: 12px;
-  padding: 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all .15s;
-}
-.notif-item:hover { background: var(--glass-b); }
-.notif-item.unread { border-left: 3px solid var(--role-primary); }
-.notif-icon {
-  width: 34px; height: 34px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px;
-  flex-shrink: 0;
-}
-.ni-milestone { background: rgba(124,58,237,0.2); color: #a855f7; }
-.ni-verification { background: rgba(16,185,129,0.2); color: var(--green); }
-.ni-mentor { background: rgba(59,130,246,0.2); color: var(--blue); }
-.ni-info { background: rgba(156,163,175,0.2); color: #9ca3af; }
-
-/* ── MODAL ───────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -550,26 +483,23 @@ body {
   overflow-y: auto;
   animation: scaleIn .2s ease;
 }
-.modal-wide { max-width: 760px; }
+.modal-wide { max-width: 840px; }
 @keyframes scaleIn { from{ opacity:0;transform:scale(.95); } to{ opacity:1;transform:scale(1); } }
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 .modal-title { font-family: var(--font-head); font-size: 18px; font-weight: 700; }
 .modal-close { width:32px;height:32px;border-radius:50%;background:var(--glass);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s; }
 .modal-close:hover { background:var(--glass-b);color:var(--text); }
 
-/* ── PROGRESS BAR ────────────────────────────────────────── */
 .progress-wrap { margin: 8px 0; }
 .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 .progress-bar { height: 6px; background: var(--glass-b); border-radius: 99px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--role-primary), var(--accent2)); transition: width .5s ease; }
 
-/* ── TABLE ───────────────────────────────────────────────── */
 .tt-table { width: 100%; border-collapse: collapse; }
 .tt-table th { text-align: left; padding: 10px 12px; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
 .tt-table td { padding: 12px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
 .tt-table tr:hover td { background: var(--glass); }
 
-/* ── TOAST ───────────────────────────────────────────────── */
 #toastContainer {
   position: fixed;
   bottom: 24px;
@@ -596,7 +526,6 @@ body {
 .toast-info    { background: rgba(59,130,246,0.15);  border-color: var(--blue);  color: #93c5fd; }
 @keyframes slideIn { from{ opacity:0;transform:translateX(20px); } to{ opacity:1;transform:translateX(0); } }
 
-/* ── LIVE INDICATOR ─────────────────────────────────────── */
 .live-indicator {
   display: flex;
   align-items: center;
@@ -609,44 +538,10 @@ body {
   border-radius: 99px;
 }
 
-/* ── FILTER BAR ──────────────────────────────────────────── */
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.filter-chip {
-  padding: 6px 14px;
-  border-radius: 99px;
-  background: var(--glass);
-  border: 1px solid var(--border);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all .15s;
-  color: var(--muted);
-}
-.filter-chip.active, .filter-chip:hover { background: var(--role-glow); border-color: var(--role-primary); color: var(--role-primary); }
-
-.table-filter-bar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 240px));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.table-filter-bar .field { margin-bottom: 0; }
-
-/* ── EMPTY STATE ─────────────────────────────────────────── */
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--muted);
-}
+.empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
 .empty-state i { font-size: 40px; margin-bottom: 12px; opacity: .4; }
 .empty-state p { font-size: 14px; }
 
-/* ── SELECT / TEXTAREA ──────────────────────────────────── */
 select, textarea {
   width: 100%;
   padding: 11px 14px;
@@ -664,104 +559,24 @@ select:focus, textarea:focus { border-color: var(--role-primary); }
 select option { background: var(--surface); }
 textarea { resize: vertical; min-height: 80px; }
 
-/* ── SECTION HEADER ─────────────────────────────────────── */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.section-title {
-  font-family: var(--font-head);
-  font-size: 16px;
-  font-weight: 700;
-}
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.section-title { font-family: var(--font-head); font-size: 16px; font-weight: 700; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.info-block { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.info-label { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 8px; }
+.info-value { font-family: var(--font-head); font-size: 18px; font-weight: 700; }
 
-/* ── GOAL CARD ───────────────────────────────────────────── */
-.goal-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 12px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-}
-.info-block {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-}
-.info-label {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .6px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.info-value {
-  font-family: var(--font-head);
-  font-size: 18px;
-  font-weight: 700;
-}
-.info-copy {
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-/* ── FEEDBACK BOX ────────────────────────────────────────── */
-.feedback-box {
-  background: rgba(59,130,246,0.07);
-  border: 1px solid rgba(59,130,246,0.2);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  font-size: 12px;
-  color: #93c5fd;
-  margin-top: 8px;
-}
-
-@media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); }
-  .main { margin-left: 0; }
-  .chart-grid { grid-template-columns: 1fr; }
-  .stat-grid { grid-template-columns: repeat(2, 1fr); }
-  .feed-grid { grid-template-columns: 1fr; }
-  .topbar { padding: 14px 16px; }
-  .content { padding: 16px; }
-  .menu-toggle { display: flex !important; }
-}
-
-.menu-toggle {
-  display: none;
-  width: 36px; height: 36px;
-  border-radius: 8px;
-  background: var(--glass);
-  border: 1px solid var(--border);
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--text);
-  font-size: 15px;
-}
-
-#sidebarOverlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 99;
-}
-@media (max-width: 768px) {
-  #sidebarOverlay.visible { display: block; }
-}
+.app-watermark{ margin-top:28px; text-align:center; opacity:.75; }
+.wm-line{ width:80px; height:1px; background:rgba(255,255,255,.15); margin:0 auto 15px; }
+.wm-title{ font-size:12px; color:#d1d5db; }
+.wm-college{ margin-top:4px; font-size:10px; color:#6b7280; }
+.sidebar-watermark{ margin-top:20px; text-align:center; opacity:.7; }
+.sw-divider{ height:1px; background:rgba(255,255,255,.08); margin-bottom:15px; }
+.sw-company{ font-family:var(--font-head); font-size:15px; font-weight:700; color:var(--role-primary); }
+.sw-name{ margin-top:6px; font-size:11px; color:#d1d5db; }
+.sw-role{ margin-top:3px; font-size:10px; color:#9ca3af; }
+.sw-batch{ margin-top:8px; font-size:10px; color:#6b7280; line-height:1.6; }
+.mtrx-watermark{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); padding:8px 16px; border-radius:50px; background:rgba(255,255,255,.05); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.08); color:#8b949e; font-size:11px; z-index:9999; pointer-events:none; }
 
 .spinner {
   width: 20px; height: 20px;
@@ -772,24 +587,6 @@ textarea { resize: vertical; min-height: 80px; }
   margin: auto;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.section-divider { height: 1px; background: var(--border); margin: 24px 0; }
-.app-watermark{ margin-top:28px; text-align:center; opacity:.75; }
-.wm-line{ width:80px; height:1px; background:rgba(255,255,255,.15); margin:0 auto 15px; }
-.wm-title{ font-size:12px; color:#d1d5db; }
-.wm-subtitle{ margin-top:4px; font-size:11px; color:#8b949e; }
-.wm-college{ margin-top:4px; font-size:10px; color:#6b7280; }
-.sidebar-watermark{ margin-top:20px; text-align:center; opacity:.7; }
-.sw-divider{ height:1px; background:rgba(255,255,255,.08); margin-bottom:15px; }
-.sw-company{ font-family:var(--font-head); font-size:15px; font-weight:700; color:var(--role-primary); }
-.sw-name{ margin-top:6px; font-size:11px; color:#d1d5db; }
-.sw-role{ margin-top:3px; font-size:10px; color:#9ca3af; }
-.sw-batch{ margin-top:8px; font-size:10px; color:#6b7280; line-height:1.6; }
-.dashboard-footer{ padding:20px; text-align:center; border-top:1px solid rgba(255,255,255,.06); background:#0f1117; }
-.footer-title{ font-family:var(--font-head); font-size:18px; font-weight:700; color:white; }
-.footer-watermark{ margin-top:8px; color:#d1d5db; font-size:13px; }
-.footer-copy{ margin-top:5px; color:#6b7280; font-size:11px; }
-.mtrx-watermark{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); padding:8px 16px; border-radius:50px; background:rgba(255,255,255,.05); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.08); color:#8b949e; font-size:11px; z-index:9999; pointer-events:none; }
 </style>
 </head>
 <body>
@@ -798,7 +595,7 @@ textarea { resize: vertical; min-height: 80px; }
   <div class="login-box" id="loginBox" data-role="admin">
     <div class="login-logo">
       <h1>TalentTrack</h1>
-      <p>Student Milestone Tracker Platform</p>
+      <p>Multi-Tenant SaaS Campus Management Platform</p>
     </div>
 
     <div class="role-tabs">
@@ -806,7 +603,7 @@ textarea { resize: vertical; min-height: 80px; }
         <i class="fas fa-shield-halved"></i><br>Admin/HOD
       </button>
       <button class="role-tab" onclick="setRole('mentor')">
-        <i class="fas fa-chalkboard-user"></i><br>Mentor
+        <i class="fas fa-chalkboard-user"></i><br>Faculty
       </button>
       <button class="role-tab" onclick="setRole('student')">
         <i class="fas fa-graduation-cap"></i><br>Student
@@ -817,8 +614,8 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="field">
-      <label>Username</label>
-      <input type="text" id="loginUser" placeholder="Enter username" />
+      <label>Username / Email</label>
+      <input type="text" id="loginUser" placeholder="Enter username or email" />
     </div>
     <div class="field">
       <label>Password</label>
@@ -878,7 +675,7 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="flex items-center gap-3">
         <div class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
         <div class="topbar-title" id="topbarTitle">Dashboard</div>
-        <div class="live-indicator"><i class="fas fa-circle" style="font-size:7px"></i> MongoDB Connected</div>
+        <div class="live-indicator"><i class="fas fa-circle" style="font-size:7px"></i> Tenant Isolated</div>
       </div>
 
       <div class="flex items-center gap-3">
@@ -896,9 +693,7 @@ textarea { resize: vertical; min-height: 80px; }
 
       <!-- DASHBOARD -->
       <div class="panel" id="dashPanel">
-        <div class="stat-grid" id="statGrid">
-          <div class="stat-card"><div class="spinner"></div></div>
-        </div>
+        <div class="stat-grid" id="statGrid"><div class="spinner"></div></div>
         <div class="chart-grid">
           <div class="chart-card">
             <div class="chart-title">Activity — Last 7 Days</div>
@@ -910,16 +705,64 @@ textarea { resize: vertical; min-height: 80px; }
           </div>
         </div>
         <div class="section-header">
-          <div class="section-title">Leaderboard</div>
+          <div class="section-title">Institutional Leaderboard</div>
         </div>
         <div class="card" id="leaderboardList"><div class="spinner"></div></div>
       </div>
 
+      <!-- SUPER ADMIN MASTER CONTROL -->
+      <div class="panel" id="superAdminPanel">
+        <div class="section-header">
+          <div class="section-title">MTRX TECH Master Control &amp; Financial Analytics</div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-sm" onclick="openSubscriptionPlanManager()"><i class="fas fa-tags"></i> Subscription Plans</button>
+            <button class="btn btn-primary btn-sm" onclick="openCreateInstitutionModal()"><i class="fas fa-plus-circle"></i> Create Institution</button>
+          </div>
+        </div>
+
+        <div class="stat-grid" id="saFinancialGrid"><div class="spinner"></div></div>
+
+        <div class="section-title" style="margin-bottom:12px">Registered Tenant Institutions</div>
+        <div class="card" id="institutionsTable" style="margin-bottom:24px"><div class="spinner"></div></div>
+
+        <div class="section-title" style="margin-bottom:12px">System Audit &amp; Scheduler Logs</div>
+        <div class="card" id="superLogsTable"><div class="spinner"></div></div>
+      </div>
+
+      <!-- BILLING & SUBSCRIPTIONS (Institution Admin) -->
+      <div class="panel" id="billingPanel">
+        <div class="section-header">
+          <div class="section-title">Subscription &amp; Billing Management</div>
+          <button class="btn btn-primary btn-sm" onclick="openCheckoutModal('standard')"><i class="fas fa-arrow-up-right-dots"></i> Upgrade Plan</button>
+        </div>
+
+        <div id="trialBannerArea"></div>
+
+        <div class="info-grid" style="margin-bottom:20px">
+          <div class="info-block">
+            <div class="info-label">Current Plan</div>
+            <div class="info-value" id="bPlanName">Basic</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px" id="bPlanCycle">Monthly Billing</div>
+          </div>
+          <div class="info-block">
+            <div class="info-label">Subscription Status</div>
+            <div class="info-value" id="bStatus" style="color:var(--green)">Active</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px" id="bDaysRemaining">30 days remaining</div>
+          </div>
+          <div class="info-block">
+            <div class="info-label">Sponsor / Billing</div>
+            <div class="info-value" id="bSponsor">Regular Billing</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px" id="bRenewalDate">Renews on: —</div>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-bottom:12px">Payment &amp; Invoice History</div>
+        <div class="card" id="billingHistoryTable"><div class="spinner"></div></div>
+      </div>
+
       <!-- ANALYZE -->
       <div class="panel" id="analyzePanel">
-        <div class="section-header">
-          <div class="section-title">Analyze Students</div>
-        </div>
+        <div class="section-header"><div class="section-title">Analyze Students</div></div>
         <div class="card" id="analyzeTable"><div class="spinner"></div></div>
       </div>
 
@@ -943,9 +786,7 @@ textarea { resize: vertical; min-height: 80px; }
 
       <!-- MY STUDENTS -->
       <div class="panel" id="myStudentsPanel">
-        <div class="section-header">
-          <div class="section-title">My Mentees</div>
-        </div>
+        <div class="section-header"><div class="section-title">My Mentees</div></div>
         <div class="card" id="myStudentsTable"><div class="spinner"></div></div>
       </div>
 
@@ -953,25 +794,15 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="panel" id="goalsPanel">
         <div class="section-header">
           <div class="section-title">Goal Tracker</div>
-          <button class="btn btn-primary btn-sm" onclick="openAddGoal()">
-            <i class="fas fa-plus"></i> Set Goal
-          </button>
+          <button class="btn btn-primary btn-sm" onclick="openAddGoal()"><i class="fas fa-plus"></i> Set Goal</button>
         </div>
         <div id="goalsList"><div class="spinner"></div></div>
       </div>
 
-      <!-- LEADERBOARD -->
-      <div class="panel" id="leaderboardPanel">
-        <div class="section-header">
-          <div class="section-title">Leaderboard</div>
-        </div>
-        <div class="card" id="leaderboardPageList"><div class="spinner"></div></div>
-      </div>
-
-      <!-- USERS (Admin / SuperAdmin) -->
+      <!-- USERS -->
       <div class="panel" id="usersPanel">
         <div class="section-header">
-          <div class="section-title">User Management</div>
+          <div class="section-title">User Roster Management</div>
           <div class="flex gap-2">
             <button class="btn btn-ghost btn-sm" onclick="openExcelModal()"><i class="fas fa-file-excel"></i> Excel Import/Export</button>
             <button class="btn btn-primary btn-sm" onclick="openCreateUser()"><i class="fas fa-user-plus"></i> Add User</button>
@@ -980,34 +811,13 @@ textarea { resize: vertical; min-height: 80px; }
         <div class="card" id="usersTable"><div class="spinner"></div></div>
       </div>
 
-      <!-- DEPARTMENTS (Admin / SuperAdmin) -->
+      <!-- DEPARTMENTS -->
       <div class="panel" id="departmentsPanel">
         <div class="section-header">
-          <div class="section-title">Department &amp; Course Management</div>
+          <div class="section-title">Department Management</div>
           <button class="btn btn-primary btn-sm" onclick="openCreateDepartment()"><i class="fas fa-building"></i> Add Department</button>
         </div>
         <div class="card" id="departmentsTable"><div class="spinner"></div></div>
-      </div>
-
-      <!-- SUPER ADMIN PANEL -->
-      <div class="panel" id="superAdminPanel">
-        <div class="section-header">
-          <div class="section-title">Super Admin Master Control</div>
-        </div>
-        <div class="info-grid" style="margin-bottom:20px">
-          <div class="info-block">
-            <div class="info-label">Database Status</div>
-            <div class="info-value" style="color:var(--green)">MongoDB Active</div>
-            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="downloadBackup()"><i class="fas fa-download"></i> Backup DB</button>
-            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="openRestoreModal()"><i class="fas fa-upload"></i> Restore DB</button>
-          </div>
-          <div class="info-block">
-            <div class="info-label">System Analytics</div>
-            <div id="superAnalyticsSummary">Loading analytics...</div>
-          </div>
-        </div>
-        <div class="section-title" style="margin-bottom:12px">Activity &amp; Audit Logs</div>
-        <div class="card" id="superLogsTable"><div class="spinner"></div></div>
       </div>
 
       <!-- NOTIFICATIONS -->
@@ -1021,57 +831,27 @@ textarea { resize: vertical; min-height: 80px; }
 
       <!-- PASSWORD -->
       <div class="panel" id="passwordPanel">
-        <div class="section-header">
-          <div class="section-title">Reset Password</div>
-        </div>
+        <div class="section-header"><div class="section-title">Reset Password</div></div>
         <div class="card" style="max-width:420px">
-          <div class="field">
-            <label>Current Password</label>
-            <input type="password" id="pwCurrent" placeholder="Enter current password" />
-          </div>
-          <div class="field">
-            <label>New Password</label>
-            <input type="password" id="pwNew" placeholder="Enter new password" />
-          </div>
-          <div class="field">
-            <label>Confirm New Password</label>
-            <input type="password" id="pwConfirm" placeholder="Re-enter new password" />
-          </div>
-          <button class="btn btn-primary" onclick="submitPasswordChange()">
-            <i class="fas fa-key"></i> Update Password
-          </button>
+          <div class="field"><label>Current Password</label><input type="password" id="pwCurrent" /></div>
+          <div class="field"><label>New Password</label><input type="password" id="pwNew" /></div>
+          <div class="field"><label>Confirm New Password</label><input type="password" id="pwConfirm" /></div>
+          <button class="btn btn-primary" onclick="submitPasswordChange()"><i class="fas fa-key"></i> Update Password</button>
         </div>
       </div>
 
       <!-- INFO -->
       <div class="panel" id="infoPanel">
-        <div class="section-header">
-          <div class="section-title">Info</div>
-        </div>
+        <div class="section-header"><div class="section-title">System Info</div></div>
         <div class="card" style="margin-bottom:16px">
           <div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--role-primary);margin-bottom:6px">TALENT TRACK</div>
-          <div class="text-muted">Enterprise Student Milestone Tracker Platform</div>
+          <div class="text-muted">Enterprise Multi-Tenant SaaS Campus Management Platform</div>
         </div>
-        <div class="info-grid" style="margin-bottom:16px">
+        <div class="info-grid">
           <div class="info-block"><div class="info-label">Developed By</div><div class="info-value">MTRX TECH</div></div>
-          <div class="info-block"><div class="info-label">Founder &amp; CEO (developer)</div><div class="info-value">MARAPATHRAN V</div></div>
-          <div class="info-block"><div class="info-label">Web Designed By</div><div class="info-value">MANU SHREE M</div></div>
+          <div class="info-block"><div class="info-label">Founder &amp; CEO</div><div class="info-value">MARAPATHRAN V</div></div>
+          <div class="info-block"><div class="info-label">Web Designer</div><div class="info-value">MANU SHREE M</div></div>
           <div class="info-block"><div class="info-label">Developer</div><div class="info-value">DURGA MIKILA S.V</div></div>
-          <div class="info-block"><div class="info-label">Co-Developers</div><div class="info-value">MURUGAN<br>SUDHARESWARAN</div></div>
-        </div>
-        <div class="card" style="margin-bottom:16px" id="ackCard">
-          <div class="info-label">Acknowledgement</div>
-          <div class="info-copy">
-            The person behind every successful milestone of MTRX TECH and the future vision of the MARAPATHRAN Group of Industries is my professor and personal mentor,
-            <strong style="color:var(--text)">Mrs. C. Krishnakala</strong>.
-            Her guidance, encouragement, and mentorship have been a constant source of inspiration throughout this journey.
-          </div>
-        </div>
-        <div class="card">
-          <div class="info-label">Special Thanks</div>
-          <div class="info-copy">
-            Heartfelt thanks to <strong style="color:var(--text)">RAMCO INSTITUTE OF TECHNOLOGY</strong> for providing an environment that encourages learning, innovation, and technological excellence.
-          </div>
         </div>
       </div>
 
@@ -1086,18 +866,10 @@ textarea { resize: vertical; min-height: 80px; }
 </div>
 
 <script>
-const API_URL = "/exec"; // Mapped to local Node.js Express backend /exec compatibility endpoint
-
+const API_URL = "/exec";
 let currentUser = null;
 let authToken = localStorage.getItem("tt_token") || null;
-let refreshToken = localStorage.getItem("tt_refresh_token") || null;
-let allMilestones = [];
-let allUsers = [];
-let userFilters = { className: "", mentorId: "" };
-let analyzeFilters = { className: "", mentorId: "" };
-let filterCategory = "all";
-let activityChartInst = null;
-let catChartInst = null;
+let selectedRole = "admin";
 let pollingInterval = null;
 
 async function api(action, data = {}) {
@@ -1110,27 +882,10 @@ async function api(action, data = {}) {
       headers,
       body: JSON.stringify({ action, data }),
     });
-
-    const text = await res.text();
-    let jsonResult;
-    try {
-      jsonResult = JSON.parse(text);
-    } catch (e) {
-      jsonResult = { success: false, error: text || "Invalid JSON response" };
-    }
-    return jsonResult;
+    return await res.json();
   } catch (err) {
-    console.error("API error:", err);
     return { success: false, error: err.message };
   }
-}
-
-function flattenData(obj) {
-  const flat = {};
-  Object.entries(obj).forEach(([k, v]) => {
-    flat[k] = typeof v === "object" ? JSON.stringify(v) : v;
-  });
-  return flat;
 }
 
 function toast(msg, type = "info") {
@@ -1141,8 +896,6 @@ function toast(msg, type = "info") {
   document.getElementById("toastContainer").appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
-
-let selectedRole = "admin";
 
 function setRole(role) {
   selectedRole = role;
@@ -1175,10 +928,6 @@ async function doLogin() {
     authToken = res.token;
     localStorage.setItem("tt_token", res.token);
   }
-  if (res.refreshToken) {
-    refreshToken = res.refreshToken;
-    localStorage.setItem("tt_refresh_token", res.refreshToken);
-  }
   initApp();
 }
 
@@ -1199,46 +948,33 @@ function initApp() {
   document.getElementById("sidebarRole").textContent     = capitalize(currentUser.role);
   document.getElementById("sidebarRoleBadge").textContent = capitalize(currentUser.role);
 
-  const ackCard = document.getElementById("ackCard");
-  if (ackCard) {
-    const showAck = currentUser.role === "mentor" || currentUser.role === "student";
-    ackCard.style.display = showAck ? "" : "none";
-  }
-
   buildNav();
   showPanel("dashPanel");
   loadDashboard();
-
-  if (currentUser.role !== "student") {
-    document.getElementById("addMsBtn").style.display = "none";
-  } else {
-    document.getElementById("addMsBtn").style.display = "";
-  }
-
-  startPolling();
 }
 
 function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : ""; }
 
 const NAV_CONFIG = {
   superadmin: [
-    { label: "OVERVIEW", items: [
-      { icon: "fa-gauge-high",   text: "Dashboard",       panel: "dashPanel" },
+    { label: "MTRX TECH SAAS", items: [
       { icon: "fa-crown",        text: "Master Control",  panel: "superAdminPanel" },
+      { icon: "fa-gauge-high",   text: "Dashboard",       panel: "dashPanel" },
       { icon: "fa-chart-line",   text: "Analyze",         panel: "analyzePanel" },
       { icon: "fa-stream",       text: "Milestones",      panel: "feedPanel" },
       { icon: "fa-users",        text: "Users",           panel: "usersPanel" },
       { icon: "fa-building",     text: "Departments",     panel: "departmentsPanel" },
     ]},
-    { label: "TOOLS", items: [
+    { label: "SYSTEM", items: [
       { icon: "fa-bell",         text: "Notifications",   panel: "notifPanel" },
       { icon: "fa-key",          text: "Password",        panel: "passwordPanel" },
       { icon: "fa-circle-info",  text: "Info",            panel: "infoPanel" },
     ]},
   ],
   admin: [
-    { label: "OVERVIEW", items: [
+    { label: "INSTITUTION", items: [
       { icon: "fa-gauge-high",   text: "Dashboard",   panel: "dashPanel" },
+      { icon: "fa-receipt",      text: "Billing & Plans", panel: "billingPanel" },
       { icon: "fa-chart-line",   text: "Analyze",     panel: "analyzePanel" },
       { icon: "fa-stream",       text: "Milestones",  panel: "feedPanel" },
       { icon: "fa-users",        text: "Users",       panel: "usersPanel" },
@@ -1268,7 +1004,6 @@ const NAV_CONFIG = {
       { icon: "fa-gauge-high",   text: "Dashboard",     panel: "dashPanel" },
       { icon: "fa-stream",       text: "My Milestones", panel: "feedPanel" },
       { icon: "fa-bullseye",     text: "Goals",         panel: "goalsPanel" },
-      { icon: "fa-trophy",       text: "Leaderboard",   panel: "leaderboardPanel" },
     ]},
     { label: "TOOLS", items: [
       { icon: "fa-bell",         text: "Notifications", panel: "notifPanel" },
@@ -1281,7 +1016,7 @@ NAV_CONFIG.hod = NAV_CONFIG.admin;
 
 function buildNav() {
   const nav = document.getElementById("sidebarNav");
-  const sections = NAV_CONFIG[currentUser.role] || [];
+  const sections = NAV_CONFIG[currentUser.role] || NAV_CONFIG.admin;
   nav.innerHTML = sections.map(sec => `
     <div class="nav-section">
       <div class="nav-label">${sec.label}</div>
@@ -1294,1229 +1029,250 @@ function buildNav() {
   `).join("");
 }
 
-const PANEL_TITLES = {
-  dashPanel:        "Dashboard",
-  superAdminPanel:  "Super Admin Control",
-  analyzePanel:     "Analyze",
-  feedPanel:        "Milestones",
-  goalsPanel:       "Goal Tracker",
-  usersPanel:       "Users",
-  departmentsPanel: "Departments & Courses",
-  notifPanel:       "Notifications",
-  myStudentsPanel:  "My Mentees",
-  leaderboardPanel: "Leaderboard",
-  passwordPanel:    "Password",
-  infoPanel:        "Info",
-};
-
-function showPanel(panelId, closeSidebar = true) {
+function showPanel(panelId) {
   document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
   document.getElementById(panelId)?.classList.add("active");
 
   document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
   document.getElementById("nav-" + panelId)?.classList.add("active");
 
-  document.getElementById("topbarTitle").textContent = PANEL_TITLES[panelId] || "";
-
-  if (closeSidebar && window.innerWidth < 769) {
-    document.getElementById("sidebar").classList.remove("open");
-    document.getElementById("sidebarOverlay").classList.remove("visible");
-  }
-
   switch (panelId) {
-    case "feedPanel":         loadMilestones(); break;
-    case "goalsPanel":        loadGoals(); break;
-    case "usersPanel":        loadUsers(); break;
-    case "departmentsPanel":  loadDepartments(); break;
-    case "superAdminPanel":   loadSuperAdminPanel(); break;
-    case "notifPanel":        loadNotifications(); break;
-    case "myStudentsPanel":   loadMyStudents(); break;
-    case "analyzePanel":      loadAnalyze(); break;
-    case "leaderboardPanel":  loadLeaderboardPage(); break;
+    case "superAdminPanel": loadSuperAdminPanel(); break;
+    case "billingPanel":    loadBillingPanel(); break;
+    case "feedPanel":       loadMilestones(); break;
+    case "usersPanel":      loadUsers(); break;
   }
-}
-
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("sidebarOverlay").classList.toggle("visible");
 }
 
 async function loadDashboard() {
   const res = await api("getStats", {
-    mentorId: currentUser.role === "mentor" ? currentUser.id : ""
+    mentorId: currentUser.role === "mentor" ? currentUser.id : "",
+    studentId: currentUser.role === "student" ? currentUser.id : ""
   });
-  if (!res.success) { toast("Failed to load stats.", "error"); return; }
-
+  if (!res.success) return;
   const s = res.stats;
-  renderStats(s);
-  renderLeaderboard(s.leaderboard);
-  renderCharts(s.dailyActivity, s.categories);
-  updateNotifBadge();
-}
-
-function renderStats(s) {
-  const role = currentUser.role;
-  let cards;
-
-  if (role === "superadmin") {
-    cards = [
-      { icon: "fa-shield-halved", label: "Total Admins",      value: s.totalAdmin || 1 },
-      { icon: "fa-building",      label: "Departments",       value: s.totalDepartments || 0 },
-      { icon: "fa-users",         label: "Total Students",    value: s.totalStudents || 0 },
-      { icon: "fa-chalkboard",    label: "Total Mentors",     value: s.totalMentors || 0 },
-      { icon: "fa-trophy",        label: "Total Milestones",  value: s.totalMilestones || 0 },
-    ];
-  } else if (["admin", "hod"].includes(role)) {
-    cards = [
-      { icon: "fa-users",         label: "Total Students",    value: s.totalStudents || 0 },
-      { icon: "fa-chalkboard",    label: "Total Mentors",     value: s.totalMentors || 0 },
-      { icon: "fa-trophy",        label: "Total Milestones",  value: s.totalMilestones || 0 },
-      { icon: "fa-check-circle",  label: "Verified",          value: s.verifiedCount || 0 },
-      { icon: "fa-hourglass",     label: "Pending Review",    value: s.pendingCount || 0 },
-    ];
-  } else if (role === "mentor") {
-    cards = [
-      { icon: "fa-user-group",   label: "My Mentees",       value: s.myStudentsCount || 0 },
-      { icon: "fa-stream",       label: "Their Milestones",  value: s.myMilestonesCount || 0 },
-      { icon: "fa-check-circle", label: "Verified",          value: s.verifiedCount || 0 },
-      { icon: "fa-hourglass",    label: "Pending",           value: s.pendingCount || 0 },
-    ];
-  } else {
-    cards = [
-      { icon: "fa-stream",       label: "My Milestones",    value: s.myMilestonesCount || s.totalMilestones || 0 },
-      { icon: "fa-check-circle", label: "Verified",          value: s.verifiedCount || 0 },
-      { icon: "fa-hourglass",    label: "Pending",           value: s.pendingCount || 0 },
-    ];
-  }
-
-  document.getElementById("statGrid").innerHTML = cards.map(c => `
-    <div class="stat-card">
-      <div class="stat-icon"><i class="fas ${c.icon}"></i></div>
-      <div class="stat-value">${c.value ?? 0}</div>
-      <div class="stat-label">${c.label}</div>
-    </div>
-  `).join("");
-}
-
-function renderLeaderboard(board) {
-  if (!board?.length) {
-    document.getElementById("leaderboardList").innerHTML = `<div class="empty-state"><i class="fas fa-trophy"></i><p>No data in database</p></div>`;
-    return;
-  }
-  const rankClass = i => i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
-  document.getElementById("leaderboardList").innerHTML = board.map((u, i) => `
-    <div class="leaderboard-item">
-      <div class="rank ${rankClass(i)}">${i + 1}</div>
-      <div class="avatar" style="width:34px;height:34px;font-size:13px">${u.name[0]}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${u.name}</div>
-        <div style="font-size:11px;color:var(--muted)">${u.domain || "—"}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-family:var(--font-head);font-size:16px;font-weight:700;color:var(--role-primary)">${u.count}</div>
-        <div style="font-size:10px;color:var(--muted)">verified</div>
-      </div>
-    </div>
-  `).join("");
-}
-
-async function loadLeaderboardPage() {
-  const res = await api("getStats", { fullLeaderboard: "true" });
-  if (!res.success) { toast("Failed to load leaderboard.", "error"); return; }
-  const board = res.stats.leaderboard || [];
-  const el = document.getElementById("leaderboardPageList");
-  if (!board.length) {
-    el.innerHTML = `<div class="empty-state"><i class="fas fa-trophy"></i><p>No student ranking data found</p></div>`;
-    return;
-  }
-  const rankClass = i => i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
-  el.innerHTML = board.map((u, i) => `
-    <div class="leaderboard-item ${u.id === currentUser.id ? 'active' : ''}">
-      <div class="rank ${rankClass(i)}">${i + 1}</div>
-      <div class="avatar" style="width:34px;height:34px;font-size:13px">${u.name[0]}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${u.name}${u.id === currentUser.id ? ' (You)' : ''}</div>
-        <div style="font-size:11px;color:var(--muted)">${u.domain || "—"}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-family:var(--font-head);font-size:16px;font-weight:700;color:var(--role-primary)">${u.count}</div>
-        <div style="font-size:10px;color:var(--muted)">verified</div>
-      </div>
-    </div>
-  `).join("");
-}
-
-function renderCharts(daily, cats) {
-  const labels = Object.keys(daily || {}).map(d => d.slice(5));
-  const values = Object.values(daily || {});
-
-  if (activityChartInst) activityChartInst.destroy();
-  const actCtx = document.getElementById("activityChart").getContext("2d");
-  activityChartInst = new Chart(actCtx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Milestones",
-        data: values,
-        backgroundColor: "rgba(124,58,237,0.5)",
-        borderColor: "#7c3aed",
-        borderWidth: 1,
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: "rgba(255,255,255,0.04)" }, ticks: { color: "#6b7280", font: { size: 10 } } },
-        y: { grid: { color: "rgba(255,255,255,0.04)" }, ticks: { color: "#6b7280", font: { size: 10 }, stepSize: 1 } },
-      }
-    }
-  });
-
-  if (catChartInst) catChartInst.destroy();
-  const catCtx = document.getElementById("catChart").getContext("2d");
-  const catLabels = Object.keys(cats || {});
-  const catValues = Object.values(cats || {});
-  const palette = ["#7c3aed","#10b981","#3b82f6","#f59e0b","#ef4444","#a855f7","#06b6d4"];
-  catChartInst = new Chart(catCtx, {
-    type: "doughnut",
-    data: {
-      labels: catLabels.length ? catLabels : ["General"],
-      datasets: [{ data: catValues.length ? catValues : [0], backgroundColor: palette, borderWidth: 0, hoverOffset: 4 }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { position: "bottom", labels: { color: "#6b7280", font: { size: 11 }, boxWidth: 10, padding: 12 } }
-      }
-    }
-  });
-}
-
-async function loadMilestones(category = filterCategory) {
-  const params = {};
-  if (currentUser.role === "student") params.studentId = currentUser.id;
-  if (category !== "all") params.category = category;
-
-  const res = await api("getMilestones", params);
-  if (!res.success) { toast("Failed to load milestones.", "error"); return; }
-
-  allMilestones = res.milestones;
-  renderFeed(allMilestones);
-}
-
-function renderFeed(ms) {
-  const grid = document.getElementById("feedGrid");
-  if (!ms.length) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-stream"></i><p>No milestones recorded</p></div>`;
-    return;
-  }
-  grid.innerHTML = ms.map(m => milestoneCard(m)).join("");
-}
-
-function milestoneCard(m) {
-  const status = m.verified === "true" ? "verified" : m.verified === "rejected" ? "rejected" : "pending";
-  const statusLabel = { verified: "Verified", rejected: "Needs Revision", pending: "Pending Review" };
-  const img = m.imageUrl ? `<a href="${escapeAttr(m.imageUrl)}" target="_blank" rel="noopener noreferrer" title="View certificate"><img src="${escapeAttr(m.imageUrl)}" class="ms-image" onerror="this.parentElement.style.display='none'" /></a>` : "";
-
-  const mentorActions = (["mentor", "admin", "superadmin"].includes(currentUser.role)) && m.verified !== "true" ? `
-    <div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-      <button class="btn btn-green btn-sm" onclick="verifyMs('${m.id}',true)"><i class="fas fa-check"></i> Verify</button>
-      <button class="btn btn-ghost btn-sm" onclick="openFeedback('${m.id}')"><i class="fas fa-comment"></i> Feedback</button>
-    </div>
-  ` : "";
-
-  const feedback = m.mentorFeedback ? `<div class="feedback-box"><i class="fas fa-comment"></i> ${m.mentorFeedback}</div>` : "";
-
-  return `
-    <div class="milestone-card" id="ms-${m.id}">
-      ${img}
-      <div class="ms-header">
-        <div class="ms-avatar">${(m.studentName || "?")[0].toUpperCase()}</div>
-        <div class="ms-meta">
-          <div class="ms-student">${m.studentName || "Student"}</div>
-          <div class="ms-date">${formatDate(m.date)}</div>
-        </div>
-        <span class="badge badge-${status}">${statusLabel[status]}</span>
-      </div>
-      <div class="ms-title">${m.title}</div>
-      ${m.description ? `<div class="ms-desc">${m.description}</div>` : ""}
-      <div class="flex items-center justify-between" style="margin-top:4px">
-        <span class="badge badge-cat">${m.category}</span>
-        ${currentUser.role === "admin" || currentUser.role === "superadmin" || (currentUser.role === "student" && m.studentId === currentUser.id) ? `
-          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteMilestone('${m.id}')"><i class="fas fa-trash"></i></button>
-        ` : ""}
-      </div>
-      ${feedback}
-      ${mentorActions}
-    </div>
+  document.getElementById("statGrid").innerHTML = `
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-value">${s.totalStudents}</div><div class="stat-label">Students</div></div>
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-chalkboard"></i></div><div class="stat-value">${s.totalMentors}</div><div class="stat-label">Faculty</div></div>
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-trophy"></i></div><div class="stat-value">${s.totalMilestones}</div><div class="stat-label">Milestones</div></div>
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-value">${s.verifiedCount}</div><div class="stat-label">Verified</div></div>
   `;
-}
-
-function filterMilestones(cat, el) {
-  filterCategory = cat;
-  document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
-  el.classList.add("active");
-  loadMilestones(cat);
-}
-
-function openAddMilestone() {
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">Add New Milestone</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="field"><label>Title *</label><input type="text" id="msTitle" placeholder="e.g. Smart India Hackathon Winner" /></div>
-    <div class="field"><label>Category</label>
-      <select id="msCategory">
-        <option value="General">General</option>
-        <option value="Hackathon">Hackathon</option>
-        <option value="Internship">Internship</option>
-        <option value="Project">Project</option>
-        <option value="Research">Research</option>
-        <option value="Certificate">Certificate</option>
-        <option value="Award">Award</option>
-      </select>
-    </div>
-    <div class="field"><label>Description</label><textarea id="msDesc" placeholder="Brief details about your achievement..."></textarea></div>
-    <div class="field"><label>Upload Certificate / Image File</label>
-      <input type="file" id="msFileInput" accept="image/*,.pdf" onchange="uploadCertificateFile(this)" />
-      <input type="hidden" id="msImgUrl" />
-      <div id="fileUploadStatus" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
-    </div>
-    <div class="field"><label>Date</label><input type="date" id="msDate" value="${new Date().toISOString().split('T')[0]}" /></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="submitAddMilestone()">Submit Milestone</button>
-  `);
-}
-
-async function uploadCertificateFile(input) {
-  if (!input.files || !input.files[0]) return;
-  const file = input.files[0];
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const statusEl = document.getElementById("fileUploadStatus");
-  statusEl.textContent = "Uploading file locally to /uploads...";
-
-  try {
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById("msImgUrl").value = data.file.url;
-      statusEl.textContent = `Uploaded successfully: ${data.file.originalname}`;
-      toast("Certificate image uploaded.", "success");
-    } else {
-      statusEl.textContent = `Upload failed: ${data.error}`;
-      toast("Upload failed", "error");
-    }
-  } catch (err) {
-    statusEl.textContent = "Error uploading file.";
-  }
-}
-
-async function submitAddMilestone() {
-  const title = document.getElementById("msTitle").value.trim();
-  const category = document.getElementById("msCategory").value;
-  const description = document.getElementById("msDesc").value.trim();
-  const imageUrl = document.getElementById("msImgUrl").value.trim();
-  const date = document.getElementById("msDate").value;
-
-  if (!title) { toast("Milestone title is required.", "error"); return; }
-
-  const res = await api("addMilestone", {
-    studentId: currentUser.id,
-    studentName: currentUser.name,
-    title, category, description, imageUrl, date
-  });
-
-  if (res.success) {
-    toast("Milestone submitted for verification.", "success");
-    closeModal();
-    loadMilestones();
-  } else {
-    toast(res.error || "Failed to add milestone", "error");
-  }
-}
-
-async function verifyMs(id, approved) {
-  const res = await api("verifyMilestone", { id, verified: approved ? "true" : "rejected" });
-  if (res.success) {
-    toast(approved ? "Milestone verified successfully." : "Revision requested.", "success");
-    loadMilestones();
-  } else {
-    toast(res.error, "error");
-  }
-}
-
-function openFeedback(id) {
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">Provide Mentor Feedback</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="field"><label>Feedback Notes</label><textarea id="fbText" placeholder="Explain what changes or improvements are needed..."></textarea></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="submitFeedback('${id}')">Submit Feedback</button>
-  `);
-}
-
-async function submitFeedback(id) {
-  const mentorFeedback = document.getElementById("fbText").value.trim();
-  const res = await api("verifyMilestone", { id, verified: "rejected", mentorFeedback });
-  if (res.success) {
-    toast("Feedback sent to student.", "success");
-    closeModal();
-    loadMilestones();
-  } else {
-    toast(res.error, "error");
-  }
-}
-
-async function deleteMilestone(id) {
-  if (!confirm("Delete this milestone?")) return;
-  const res = await api("deleteMilestone", { id });
-  if (res.success) {
-    toast("Milestone deleted.", "info");
-    loadMilestones();
-  } else {
-    toast(res.error, "error");
-  }
-}
-
-async function loadGoals() {
-  const res = await api("getGoals", { studentId: currentUser.id });
-  if (!res.success) return;
-  const goals = res.goals || [];
-  const container = document.getElementById("goalsList");
-
-  if (!goals.length) {
-    container.innerHTML = `<div class="empty-state"><i class="fas fa-bullseye"></i><p>No goals set yet. Click "Set Goal" to create your target.</p></div>`;
-    return;
-  }
-
-  container.innerHTML = goals.map(g => {
-    const pct = g.target > 0 ? Math.min(100, Math.round((g.achieved / g.target) * 100)) : 0;
-    return `
-      <div class="goal-card">
-        <div class="flex items-center justify-between" style="margin-bottom:10px">
-          <div>
-            <div style="font-weight:700;font-size:16px">Target: ${g.target} ${g.unit}</div>
-            <div style="font-size:12px;color:var(--muted)">Due: ${g.dueDate ? formatDate(g.dueDate) : 'No deadline'}</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="openUpdateGoal('${g.id}', ${g.achieved})">Update Progress</button>
-        </div>
-        <div class="progress-wrap">
-          <div class="progress-label"><span>Achieved: ${g.achieved} of ${g.target}</span><span>${pct}%</span></div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-function openAddGoal() {
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">Set Target Goal</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="field"><label>Target Count *</label><input type="number" id="gTarget" placeholder="e.g. 5" min="1" /></div>
-    <div class="field"><label>Unit</label><input type="text" id="gUnit" value="milestones" /></div>
-    <div class="field"><label>Due Date</label><input type="date" id="gDueDate" /></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="submitAddGoal()">Create Goal</button>
-  `);
-}
-
-async function submitAddGoal() {
-  const target = document.getElementById("gTarget").value;
-  const unit = document.getElementById("gUnit").value.trim();
-  const dueDate = document.getElementById("gDueDate").value;
-
-  if (!target) { toast("Target count required.", "error"); return; }
-
-  const res = await api("setGoal", { studentId: currentUser.id, target, unit, dueDate });
-  if (res.success) {
-    toast("Goal created successfully.", "success");
-    closeModal();
-    loadGoals();
-  } else {
-    toast(res.error, "error");
-  }
-}
-
-function openUpdateGoal(id, current) {
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">Update Goal Progress</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="field"><label>Current Achieved Count</label><input type="number" id="gAchieved" value="${current}" min="0" /></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="submitUpdateGoal('${id}')">Save Progress</button>
-  `);
-}
-
-async function submitUpdateGoal(id) {
-  const achieved = document.getElementById("gAchieved").value;
-  const res = await api("updateProgress", { id, achieved });
-  if (res.success) {
-    toast("Goal progress updated.", "success");
-    closeModal();
-    loadGoals();
-  } else {
-    toast(res.error, "error");
-  }
-}
-
-async function loadAnalyze() {
-  const [usersRes, msRes] = await Promise.all([
-    api("getUsers"),
-    api("getMilestones"),
-  ]);
-
-  if (!usersRes.success) return;
-  const metaUsers = usersRes.users || [];
-  const students = metaUsers.filter(u => u.role === "student");
-  const mentors  = metaUsers.filter(u => u.role === "mentor");
-  const mentorMap = Object.fromEntries(mentors.map(m => [m.id, m.name]));
-
-  const allMs = msRes.success ? msRes.milestones : [];
-  const msByStudent = {};
-  allMs.forEach(m => {
-    if (!msByStudent[m.studentId]) msByStudent[m.studentId] = [];
-    msByStudent[m.studentId].push(m);
-  });
-
-  const wrap = document.getElementById("analyzeTable");
-  const classes = [...new Set(students.map(u => u.domain).filter(Boolean))].sort();
-
-  const filterBar = `
-    <div class="table-filter-bar">
-      <div class="field">
-        <label>Class</label>
-        <select id="analyzeClassFilter" onchange="setAnalyzeFilter('className', this.value)">
-          <option value="">All Classes</option>
-          ${classes.map(cls => `<option value="${escapeAttr(cls)}" ${analyzeFilters.className === cls ? "selected" : ""}>${escapeHtml(cls)}</option>`).join("")}
-        </select>
-      </div>
-      <div class="field">
-        <label>Mentor</label>
-        <select id="analyzeMentorFilter" onchange="setAnalyzeFilter('mentorId', this.value)">
-          <option value="">All Mentors</option>
-          ${mentors.map(m => `<option value="${escapeAttr(m.id)}" ${analyzeFilters.mentorId === m.id ? "selected" : ""}>${escapeHtml(m.name)}</option>`).join("")}
-        </select>
-      </div>
-    </div>
-  `;
-
-  wrap.innerHTML = `
-    ${filterBar}
-    <div style="overflow-x:auto">
-    <table class="tt-table">
-      <thead><tr>
-        <th>Student</th><th>Class</th><th>Mentor</th><th>Milestones</th><th>Verified</th><th>Pending</th><th>Actions</th>
-      </tr></thead>
-      <tbody>
-        ${students.length ? students.map(u => {
-          const owned = msByStudent[u.id] || [];
-          const verified = owned.filter(m => String(m.verified) === "true").length;
-          const pending = owned.length - verified;
-          return `
-          <tr>
-            <td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px">${u.name[0]}</div>${u.name}</div></td>
-            <td>${u.domain || "—"}</td>
-            <td>${mentorMap[u.mentorId] || "—"}</td>
-            <td><strong>${owned.length}</strong></td>
-            <td><span class="badge badge-verified">${verified}</span></td>
-            <td><span class="badge badge-pending">${pending}</span></td>
-            <td><button class="btn btn-ghost btn-sm" onclick="openStudentSummary('${u.id}')"><i class="fas fa-chart-simple"></i> Summary</button></td>
-          </tr>
-        `; }).join("") : `<tr><td colspan="7"><div class="empty-state" style="padding:28px"><i class="fas fa-chart-line"></i><p>No student analytics found</p></div></td></tr>`}
-      </tbody>
-    </table>
-    </div>
-  `;
-}
-
-function setAnalyzeFilter(key, value) {
-  analyzeFilters[key] = value;
-  loadAnalyze();
-}
-
-async function openStudentSummary(studentId) {
-  const [usersRes, msRes, goalsRes] = await Promise.all([
-    api("getUsers"),
-    api("getMilestones", { studentId }),
-    api("getGoals", { studentId }),
-  ]);
-
-  const student = (usersRes.users || []).find(u => u.id === studentId);
-  if (!student) { toast("Student not found.", "error"); return; }
-
-  const mentor = (usersRes.users || []).find(u => u.id === student.mentorId);
-  const ms = msRes.success ? msRes.milestones : [];
-  const goals = goalsRes.success ? goalsRes.goals : [];
-  const verified = ms.filter(m => String(m.verified) === "true").length;
-  const pending = ms.length - verified;
-
-  const categoryCounts = {};
-  ms.forEach(m => { const c = m.category || "General"; categoryCounts[c] = (categoryCounts[c] || 0) + 1; });
-  const catSummary = Object.entries(categoryCounts).map(([c, n]) => `<span class="badge badge-cat">${c}: ${n}</span>`).join(" ");
-
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">${student.name} — Quick Summary</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="info-grid" style="margin-bottom:16px">
-      <div class="info-block"><div class="info-label">Class</div><div class="info-value">${student.domain || "—"}</div></div>
-      <div class="info-block"><div class="info-label">Mentor</div><div class="info-value">${mentor ? mentor.name : "—"}</div></div>
-      <div class="info-block"><div class="info-label">Total Milestones</div><div class="info-value">${ms.length}</div></div>
-      <div class="info-block"><div class="info-label">Verified / Pending</div><div class="info-value">${verified} / ${pending}</div></div>
-    </div>
-    ${catSummary ? `<div style="margin-bottom:16px">${catSummary}</div>` : ""}
-    <div class="section-title" style="font-size:14px;margin-bottom:8px">Recent Milestones</div>
-    <div style="display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto">
-      ${ms.length ? ms.slice(0, 10).map(m => `
-        <div class="card" style="padding:14px">
-          <div class="flex items-center justify-between">
-            <div style="font-weight:600">${m.title}</div>
-            <span class="badge badge-${String(m.verified) === 'true' ? 'verified' : 'pending'}">${String(m.verified) === 'true' ? 'Verified' : 'Pending'}</span>
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">${m.category} · ${formatDate(m.date)}</div>
-          ${m.description ? `<div style="font-size:13px;margin-top:6px;color:var(--text)">${m.description}</div>` : ""}
-          ${m.imageUrl ? `<a href="${escapeAttr(m.imageUrl)}" target="_blank" rel="noopener noreferrer"><img src="${escapeAttr(m.imageUrl)}" class="ms-image" style="margin-top:8px;height:100px" onerror="this.parentElement.style.display='none'" /></a>` : ""}
-        </div>
-      `).join("") : `<div class="empty-state"><p>No milestones recorded</p></div>`}
-    </div>
-  `, true);
-}
-
-async function loadUsers() {
-  const res = await api("getUsers");
-  if (!res.success) return;
-  allUsers = res.users;
-
-  const mentors = allUsers.filter(u => u.role === "mentor");
-  const mentorMap = Object.fromEntries(mentors.map(m => [m.id, m.name]));
-  const wrap = document.getElementById("usersTable");
-
-  wrap.innerHTML = `
-    ${renderUserFilters(allUsers)}
-    <div style="overflow-x:auto">
-    <table class="tt-table">
-      <thead><tr>
-        <th>Name</th><th>Username</th><th>Role</th><th>Domain</th><th>Mentor</th><th>Actions</th>
-      </tr></thead>
-      <tbody>
-        ${allUsers.length ? allUsers.map(u => `
-          <tr>
-            <td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px">${u.name[0]}</div>${u.name}</div></td>
-            <td><code style="font-size:12px;color:var(--muted)">@${u.username}</code></td>
-            <td><span class="badge badge-${u.role === 'superadmin' ? 'cat' : u.role === 'admin' ? 'cat' : u.role === 'mentor' ? 'verified' : 'pending'}">${u.role}</span></td>
-            <td>${u.domain || "—"}</td>
-            <td>${u.mentorId ? `<span class="badge badge-verified">${mentorMap[u.mentorId] || 'Assigned'}</span>` : '<span class="badge badge-pending">None</span>'}</td>
-            <td>
-              <div class="flex gap-2">
-                ${u.role === 'student' ? `<button class="btn btn-ghost btn-sm" onclick="openAssignMentor('${u.id}')">Assign Mentor</button>` : ""}
-                ${currentUser.role === 'superadmin' || currentUser.role === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>` : ""}
-              </div>
-            </td>
-          </tr>
-        `).join("") : `<tr><td colspan="6"><div class="empty-state" style="padding:28px"><i class="fas fa-users"></i><p>No user accounts found</p></div></td></tr>`}
-      </tbody>
-    </table>
-    </div>
-  `;
-}
-
-function renderUserFilters(users) {
-  const students = users.filter(u => u.role === "student");
-  const mentors = users.filter(u => u.role === "mentor");
-  const classes = [...new Set(students.map(u => u.domain).filter(Boolean))].sort();
-  return `
-    <div class="table-filter-bar">
-      <div class="field">
-        <label>Class Filter</label>
-        <select id="userClassFilter" onchange="setUserFilter('className', this.value)">
-          <option value="">All Classes</option>
-          ${classes.map(cls => `<option value="${escapeAttr(cls)}" ${userFilters.className === cls ? "selected" : ""}>${escapeHtml(cls)}</option>`).join("")}
-        </select>
-      </div>
-      <div class="field">
-        <label>Mentor Filter</label>
-        <select id="userMentorFilter" onchange="setUserFilter('mentorId', this.value)">
-          <option value="">All Mentors</option>
-          ${mentors.map(m => `<option value="${escapeAttr(m.id)}" ${userFilters.mentorId === m.id ? "selected" : ""}>${escapeHtml(m.name)}</option>`).join("")}
-        </select>
-      </div>
-    </div>
-  `;
-}
-
-function setUserFilter(key, value) {
-  userFilters[key] = value;
-  loadUsers();
-}
-
-function openCreateUser() {
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">Add New User Account</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="field"><label>Full Name *</label><input type="text" id="uName" placeholder="e.g. Manu Shree M" /></div>
-    <div class="field"><label>Username *</label><input type="text" id="uUser" placeholder="e.g. manushree" /></div>
-    <div class="field"><label>Password *</label><input type="password" id="uPass" placeholder="Set password" /></div>
-    <div class="field"><label>Role *</label>
-      <select id="uRole">
-        <option value="student">Student</option>
-        <option value="mentor">Mentor</option>
-        <option value="hod">HOD</option>
-        <option value="admin">Admin</option>
-        ${currentUser.role === 'superadmin' ? '<option value="superadmin">Super Admin</option>' : ''}
-      </select>
-    </div>
-    <div class="field"><label>Domain / Department</label><input type="text" id="uDomain" placeholder="e.g. CSE, ECE, MECH" /></div>
-    <button class="btn btn-primary" style="margin-top:8px" onclick="submitCreateUser()">Create User</button>
-  `);
-}
-
-async function submitCreateUser() {
-  const name = document.getElementById("uName").value.trim();
-  const username = document.getElementById("uUser").value.trim();
-  const password = document.getElementById("uPass").value.trim();
-  const role = document.getElementById("uRole").value;
-  const domain = document.getElementById("uDomain").value.trim();
-
-  if (!name || !username || !password) { toast("All required fields must be filled.", "error"); return; }
-
-  const res = await api("createUser", { name, username, password, role, domain });
-  if (res.success) { toast("User created successfully.", "success"); closeModal(); loadUsers(); }
-  else toast(res.error, "error");
-}
-
-async function deleteUser(id) {
-  if (!confirm("Delete this user? This action cannot be undone.")) return;
-  const res = await api("deleteUser", { id });
-  if (res.success) { toast("User deleted.", "success"); loadUsers(); }
-  else toast(res.error, "error");
-}
-
-async function openAssignMentor(studentId) {
-  const res = await api("getUsers", { role: "mentor" });
-  const mentors = res.users || [];
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">Assign Mentor</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="field"><label>Select Mentor</label>
-      <select id="mentorSel">
-        ${mentors.map(m => `<option value="${m.id}">${m.name} (${m.domain || 'General'})</option>`).join("")}
-      </select>
-    </div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="submitAssign('${studentId}')">Assign</button>
-  `);
-}
-
-async function submitAssign(studentId) {
-  const mentorId = document.getElementById("mentorSel").value;
-  const res = await api("assignMentor", { studentId, mentorId });
-  if (res.success) { toast("Mentor assigned successfully.", "success"); closeModal(); loadUsers(); }
-  else toast(res.error, "error");
-}
-
-async function loadDepartments() {
-  try {
-    const res = await fetch("/api/departments");
-    const data = await res.json();
-    const wrap = document.getElementById("departmentsTable");
-
-    if (!data.success || !data.departments.length) {
-      wrap.innerHTML = `<div class="empty-state"><i class="fas fa-building"></i><p>No departments configured</p></div>`;
-      return;
-    }
-
-    wrap.innerHTML = `
-      <div style="overflow-x:auto">
-      <table class="tt-table">
-        <thead><tr><th>Code</th><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
-        <tbody>
-          ${data.departments.map(d => `
-            <tr>
-              <td><strong>${d.code}</strong></td>
-              <td>${d.name}</td>
-              <td>${d.description || '—'}</td>
-              <td><button class="btn btn-danger btn-sm" onclick="deleteDepartment('${d.id}')"><i class="fas fa-trash"></i></button></td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table></div>
-    `;
-  } catch (err) {
-    toast("Error loading departments", "error");
-  }
-}
-
-function openCreateDepartment() {
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">Add Department</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="field"><label>Code *</label><input type="text" id="dCode" placeholder="e.g. CSE" /></div>
-    <div class="field"><label>Name *</label><input type="text" id="dName" placeholder="Computer Science & Engineering" /></div>
-    <div class="field"><label>Description</label><textarea id="dDesc" placeholder="Department description..."></textarea></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="submitCreateDepartment()">Create Department</button>
-  `);
-}
-
-async function submitCreateDepartment() {
-  const code = document.getElementById("dCode").value.trim();
-  const name = document.getElementById("dName").value.trim();
-  const description = document.getElementById("dDesc").value.trim();
-
-  if (!code || !name) { toast("Code and Name are required.", "error"); return; }
-
-  const res = await fetch("/api/departments/create", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code, name, description }),
-  });
-  const data = await res.json();
-  if (data.success) {
-    toast("Department created successfully.", "success");
-    closeModal();
-    loadDepartments();
-  } else {
-    toast(data.error, "error");
-  }
-}
-
-async function deleteDepartment(id) {
-  if (!confirm("Delete this department?")) return;
-  const res = await fetch(`/api/departments/${id}`, { method: "DELETE" });
-  const data = await res.json();
-  if (data.success) {
-    toast("Department deleted.", "info");
-    loadDepartments();
-  }
 }
 
 async function loadSuperAdminPanel() {
   try {
     const headers = { "Authorization": `Bearer ${authToken}` };
-    const res = await fetch("/api/superadmin/analytics", { headers });
-    const data = await res.json();
-    if (data.success) {
-      const u = data.analytics.usersByRole || {};
-      document.getElementById("superAnalyticsSummary").innerHTML = `
-        <div style="font-size:12px;color:var(--text);margin-top:6px;line-height:1.6">
-          SuperAdmins: <strong>${u.superadmin || 1}</strong> | Admins: <strong>${u.admin || 0}</strong><br>
-          HODs: <strong>${u.hod || 0}</strong> | Mentors: <strong>${u.mentor || 0}</strong> | Students: <strong>${u.student || 0}</strong>
-        </div>
+    const [anRes, instRes] = await Promise.all([
+      fetch("/api/superadmin/analytics", { headers }),
+      fetch("/api/institutions", { headers })
+    ]);
+    const anData = await anRes.json();
+    const instData = await instRes.json();
+
+    if (anData.success) {
+      const a = anData.analytics;
+      document.getElementById("saFinancialGrid").innerHTML = `
+        <div class="stat-card"><div class="stat-icon" style="color:var(--gold)"><i class="fas fa-indian-rupee-sign"></i></div><div class="stat-value">₹${a.totalRevenue}</div><div class="stat-label">Total Revenue</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-value">₹${a.mrr}</div><div class="stat-label">MRR (Monthly)</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar-check"></i></div><div class="stat-value">₹${a.arr}</div><div class="stat-label">ARR (Annual)</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-building"></i></div><div class="stat-value">${a.totalInstitutions}</div><div class="stat-label">Active Tenants</div></div>
       `;
     }
 
-    const logRes = await fetch("/api/superadmin/activity-logs", { headers });
-    const logData = await logRes.json();
-    const wrap = document.getElementById("superLogsTable");
-
-    if (!logData.success || !logData.logs.length) {
-      wrap.innerHTML = `<div class="empty-state"><i class="fas fa-list"></i><p>No activity logs recorded yet</p></div>`;
-      return;
+    if (instData.success) {
+      const list = instData.institutions || [];
+      document.getElementById("institutionsTable").innerHTML = `
+        <div style="overflow-x:auto">
+        <table class="tt-table">
+          <thead><tr><th>Institution</th><th>Tenant ID</th><th>Admin Email</th><th>Plan</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${list.map(inst => `
+              <tr>
+                <td><strong>${inst.name}</strong></td>
+                <td><code style="font-size:11px">${inst.tenantId}</code></td>
+                <td>${inst.adminEmail}</td>
+                <td><span class="badge badge-cat">${inst.subscription?.planName || 'Basic'} (${inst.subscription?.billingCycle || 'monthly'})</span></td>
+                <td><span class="badge badge-${inst.subscription?.freePremiumStatus === 'enabled' ? 'gold' : inst.status === 'active' ? 'verified' : 'pending'}">${inst.subscription?.freePremiumStatus === 'enabled' ? 'FREE PREMIUM' : inst.status}</span></td>
+                <td>
+                  <div class="flex gap-2">
+                    <button class="btn btn-ghost btn-sm" onclick="toggleFreePremium('${inst.institutionId}', '${inst.subscription?.freePremiumStatus}')">${inst.subscription?.freePremiumStatus === 'enabled' ? 'Revoke Free' : 'Grant Free Premium'}</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteInstitution('${inst.institutionId}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table></div>
+      `;
     }
-
-    wrap.innerHTML = `
-      <div style="overflow-x:auto">
-      <table class="tt-table">
-        <thead><tr><th>Timestamp</th><th>User</th><th>Role</th><th>Action</th><th>Details</th></tr></thead>
-        <tbody>
-          ${logData.logs.slice(0, 15).map(l => `
-            <tr>
-              <td>${formatDate(l.createdAt)}</td>
-              <td>${l.userName || 'System'}</td>
-              <td><span class="badge badge-cat">${l.role || 'system'}</span></td>
-              <td><strong>${l.action}</strong></td>
-              <td>${l.details || '—'}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table></div>
-    `;
   } catch (err) {
     console.error(err);
   }
 }
 
-function openExcelModal() {
+function openCreateInstitutionModal() {
   showModal(`
     <div class="modal-header">
-      <div class="modal-title">Excel &amp; CSV Import / Export</div>
+      <div class="modal-title">Create Institution Tenant &amp; Admin</div>
       <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
     </div>
-    <div style="margin-bottom:20px">
-      <div style="font-weight:600;font-size:14px;margin-bottom:8px">Import Data (.xlsx, .xls, .csv)</div>
-      <div class="field">
-        <label>Entity Type</label>
-        <select id="impType">
-          <option value="students">Students Roster</option>
-          <option value="mentors">Mentors Roster</option>
-          <option value="milestones">Milestones Batch</option>
-          <option value="departments">Departments</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Select Spreadsheet File</label>
-        <input type="file" id="impFile" accept=".xlsx,.xls,.csv" />
-      </div>
-      <button class="btn btn-primary" onclick="previewExcelImport()"><i class="fas fa-eye"></i> Preview Before Import</button>
+    <div class="field"><label>Institution Name *</label><input type="text" id="iName" placeholder="e.g. Ramco Institute of Technology" /></div>
+    <div class="field"><label>Admin Email *</label><input type="email" id="iAdminEmail" placeholder="admin@rit.edu" /></div>
+    <div class="field"><label>Admin Password *</label><input type="password" id="iAdminPass" placeholder="Set password" /></div>
+    <div class="field"><label>Subscription Plan</label>
+      <select id="iPlan">
+        <option value="basic">Basic Plan (₹600/mo)</option>
+        <option value="standard">Standard Plan (₹1,200/mo)</option>
+        <option value="premium">Premium Plan (₹2,000/mo)</option>
+      </select>
     </div>
-    <div class="section-divider"></div>
-    <div>
-      <div style="font-weight:600;font-size:14px;margin-bottom:8px">Export Data</div>
-      <div class="flex gap-2 flex-wrap">
-        <button class="btn btn-ghost btn-sm" onclick="exportData('students','xlsx')"><i class="fas fa-file-excel"></i> Export Students (.xlsx)</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportData('mentors','xlsx')"><i class="fas fa-file-excel"></i> Export Mentors (.xlsx)</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportData('milestones','xlsx')"><i class="fas fa-file-excel"></i> Export Milestones (.xlsx)</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportData('departments','csv')"><i class="fas fa-file-csv"></i> Export Departments (.csv)</button>
-      </div>
+    <div class="field"><label>Billing Cycle</label>
+      <select id="iCycle">
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly (2 Months Free)</option>
+      </select>
     </div>
-    <div id="importPreviewArea" style="margin-top:20px"></div>
-  `, true);
+    <div class="field"><label>Trial Option</label>
+      <select id="iTrial">
+        <option value="no_trial">No Trial</option>
+        <option value="15_days">15-Day Free Trial (Premium Access)</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="submitCreateInstitution()">Create Tenant</button>
+  `);
 }
 
-let pendingImportRows = [];
-let pendingImportType = "";
+async function submitCreateInstitution() {
+  const name = document.getElementById("iName").value.trim();
+  const adminEmail = document.getElementById("iAdminEmail").value.trim();
+  const password = document.getElementById("iAdminPass").value;
+  const subscriptionPlan = document.getElementById("iPlan").value;
+  const billingCycle = document.getElementById("iCycle").value;
+  const trialOption = document.getElementById("iTrial").value;
 
-async function previewExcelImport() {
-  const fileInput = document.getElementById("impFile");
-  const type = document.getElementById("impType").value;
+  if (!name || !adminEmail || !password) { toast("Fill all required fields.", "error"); return; }
 
-  if (!fileInput.files || !fileInput.files[0]) {
-    toast("Select an Excel or CSV file first.", "error");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", fileInput.files[0]);
-  formData.append("type", type);
-
-  const previewArea = document.getElementById("importPreviewArea");
-  previewArea.innerHTML = `<div class="spinner"></div>`;
-
-  try {
-    const res = await fetch("/api/excel/preview-import", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    if (!data.success) {
-      previewArea.innerHTML = `<div class="login-error">${data.error}</div>`;
-      return;
-    }
-
-    pendingImportRows = data.validRows;
-    pendingImportType = type;
-
-    previewArea.innerHTML = `
-      <div class="info-block" style="margin-bottom:12px">
-        <div class="info-label">Validation Summary</div>
-        <div style="font-size:13px">
-          Total Rows: <strong>${data.totalRows}</strong> | Valid Rows: <strong style="color:var(--green)">${data.validCount}</strong> | Invalid: <strong style="color:var(--red)">${data.errorCount}</strong>
-        </div>
-      </div>
-      ${data.errorCount > 0 ? `
-        <div class="login-error" style="margin-bottom:12px;max-height:100px;overflow-y:auto">
-          ${data.errors.map(e => `<div>Row ${e.rowNum}: ${e.errors}</div>`).join("")}
-        </div>
-      ` : ""}
-      <button class="btn btn-primary" onclick="confirmExcelImport()"><i class="fas fa-check"></i> Execute Import (${data.validCount} rows)</button>
-    `;
-  } catch (err) {
-    previewArea.innerHTML = `<div class="login-error">Failed to preview file.</div>`;
-  }
-}
-
-async function confirmExcelImport() {
-  if (!pendingImportRows.length) return;
-  const res = await fetch("/api/excel/import", {
+  const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` };
+  const res = await fetch("/api/institutions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type: pendingImportType, rows: pendingImportRows }),
+    headers,
+    body: JSON.stringify({ name, adminEmail, password, subscriptionPlan, billingCycle, trialOption }),
   });
   const data = await res.json();
+
   if (data.success) {
-    toast(`Successfully imported ${data.count} records.`, "success");
+    toast("Tenant Institution Created Successfully.", "success");
     closeModal();
-    loadUsers();
+    loadSuperAdminPanel();
   } else {
     toast(data.error, "error");
   }
 }
 
-function exportData(entity, format) {
-  window.open(`/api/excel/export/${entity}?format=${format}`, "_blank");
+async function toggleFreePremium(institutionId, currentStatus) {
+  const isEnabled = currentStatus === 'enabled';
+  const endpoint = isEnabled ? "/api/subscriptions/revoke-free-premium" : "/api/subscriptions/grant-free-premium";
+  const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` };
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ institutionId }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    toast(data.message, "success");
+    loadSuperAdminPanel();
+  }
 }
 
-function downloadBackup() {
-  window.open("/api/superadmin/backup", "_blank");
+async function deleteInstitution(id) {
+  if (!confirm("Permanently delete this institution tenant and all data?")) return;
+  const headers = { "Authorization": `Bearer ${authToken}` };
+  const res = await fetch(`/api/institutions/${id}`, { method: "DELETE", headers });
+  const data = await res.json();
+  if (data.success) {
+    toast("Institution tenant deleted.", "info");
+    loadSuperAdminPanel();
+  }
 }
 
-function openRestoreModal() {
+async function loadBillingPanel() {
+  const headers = { "Authorization": `Bearer ${authToken}` };
+  const res = await fetch("/api/subscriptions/current", { headers });
+  const data = await res.json();
+  if (data.success) {
+    const s = data.subscription || {};
+    document.getElementById("bPlanName").textContent = s.planName || 'Basic';
+    document.getElementById("bPlanCycle").textContent = `${s.billingCycle || 'monthly'} billing`;
+    document.getElementById("bStatus").textContent = s.freePremiumStatus === 'enabled' ? 'FREE PREMIUM' : (s.status || 'Active');
+    document.getElementById("bDaysRemaining").textContent = `${data.daysRemaining || 0} days remaining`;
+    document.getElementById("bSponsor").textContent = s.freePremiumStatus === 'enabled' ? 'Sponsored by MTRX TECH' : 'Regular Billing';
+  }
+}
+
+function openCheckoutModal(planCode = 'standard') {
   showModal(`
     <div class="modal-header">
-      <div class="modal-title">Restore Database from JSON</div>
+      <div class="modal-title">Upgrade Plan — ${planCode.toUpperCase()}</div>
       <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
     </div>
-    <div class="field"><label>Select JSON Backup File</label><input type="file" id="restoreFile" accept=".json" /></div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="submitRestore()">Restore Database</button>
+    <div class="field"><label>Select Plan</label>
+      <select id="coPlan">
+        <option value="basic">Basic Plan (₹600/month)</option>
+        <option value="standard" selected>Standard Plan (₹1,200/month)</option>
+        <option value="premium">Premium Plan (₹2,000/month)</option>
+      </select>
+    </div>
+    <div class="field"><label>Billing Cycle</label>
+      <select id="coCycle">
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly (Save ₹2,400)</option>
+      </select>
+    </div>
+    <div class="field"><label>Payment Gateway</label>
+      <select id="coGateway">
+        <option value="razorpay">Razorpay (Cards, UPI, NetBanking)</option>
+        <option value="cashfree">Cashfree Payments</option>
+        <option value="manual">Direct Bank Transfer / Manual</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="executeCheckout()">Proceed to Checkout</button>
   `);
 }
 
-async function submitRestore() {
-  const input = document.getElementById("restoreFile");
-  if (!input.files || !input.files[0]) { toast("Select backup JSON file", "error"); return; }
+async function executeCheckout() {
+  const planCode = document.getElementById("coPlan").value;
+  const billingCycle = document.getElementById("coCycle").value;
+  const gateway = document.getElementById("coGateway").value;
 
-  const text = await input.files[0].text();
-  try {
-    const backup = JSON.parse(text);
-    const res = await fetch("/api/superadmin/restore", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ backup }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      toast("Database restored successfully.", "success");
-      closeModal();
-      loadDashboard();
-    } else {
-      toast(data.error, "error");
-    }
-  } catch (e) {
-    toast("Invalid backup JSON file", "error");
+  const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` };
+  const res = await fetch("/api/payments/confirm", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ planCode, billingCycle, gateway }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    toast(data.message, "success");
+    closeModal();
+    loadBillingPanel();
+  } else {
+    toast(data.error, "error");
   }
 }
 
-async function loadMyStudents() {
-  const res = await api("getUsers", { role: "student" });
-  if (!res.success) return;
-  const mine = res.users.filter(u => u.mentorId === currentUser.id);
-  const el = document.getElementById("myStudentsTable");
-
-  if (!mine.length) {
-    el.innerHTML = `<div class="empty-state"><i class="fas fa-user-group"></i><p>No mentees assigned yet.</p></div>`;
-    return;
-  }
-
-  el.innerHTML = `
-    <div style="overflow-x:auto">
-    <table class="tt-table">
-      <thead><tr><th>Name</th><th>Username</th><th>Domain</th><th>Milestones</th><th>Actions</th></tr></thead>
-      <tbody id="myStudentsTbody"></tbody>
-    </table></div>
-  `;
-
-  const msRes = await api("getMilestones");
-  const mileMap = {};
-  (msRes.milestones || []).forEach(m => { mileMap[m.studentId] = (mileMap[m.studentId] || 0) + 1; });
-
-  document.getElementById("myStudentsTbody").innerHTML = mine.map(u => `
-    <tr>
-      <td><div class="flex items-center gap-2"><div class="avatar" style="width:28px;height:28px;font-size:11px">${u.name[0]}</div>${u.name}</div></td>
-      <td><code style="font-size:12px;color:var(--muted)">@${u.username}</code></td>
-      <td>${u.domain || "—"}</td>
-      <td><strong>${mileMap[u.id] || 0}</strong></td>
-      <td><button class="btn btn-ghost btn-sm" onclick="viewStudentMs('${u.id}','${u.name}')">View Milestones</button></td>
-    </tr>
-  `).join("");
-}
-
-async function viewStudentMs(studentId, name) {
-  const res = await api("getMilestones", { studentId });
-  const ms = res.milestones || [];
-  showModal(`
-    <div class="modal-header">
-      <div class="modal-title">${name}'s Milestones</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto">
-      ${ms.length ? ms.map(m => `
-        <div class="card" style="padding:14px">
-          <div class="flex items-center justify-between">
-            <div style="font-weight:600">${m.title}</div>
-            <span class="badge badge-${String(m.verified) === 'true' ? 'verified' : 'pending'}">${String(m.verified) === 'true' ? 'Verified' : 'Pending'}</span>
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">${m.category} · ${formatDate(m.date)}</div>
-          <div style="font-size:13px;margin-top:8px">${m.description || ""}</div>
-          ${m.imageUrl ? `<a href="${escapeAttr(m.imageUrl)}" target="_blank" rel="noopener noreferrer"><img src="${escapeAttr(m.imageUrl)}" class="ms-image" style="margin-top:8px" onerror="this.parentElement.style.display='none'" /></a>` : ""}
-          ${String(m.verified) !== "true" ? `
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn btn-green btn-sm" onclick="verifyMs('${m.id}',true);closeModal()"><i class="fas fa-check"></i> Verify</button>
-              <button class="btn btn-ghost btn-sm" onclick="openFeedback('${m.id}')"><i class="fas fa-comment"></i> Feedback</button>
-            </div>
-          ` : ""}
-        </div>
-      `).join("") : `<div class="empty-state"><p>No milestones found</p></div>`}
-    </div>
-  `, true);
-}
-
-async function loadNotifications() {
-  const res = await api("getNotifications", { userId: currentUser.id });
-  if (!res.success) return;
-  const ns = res.notifications;
-  const el = document.getElementById("notifList");
-
-  if (!ns.length) {
-    el.innerHTML = `<div class="empty-state"><i class="fas fa-bell-slash"></i><p>No notifications recorded</p></div>`;
-    return;
-  }
-
-  const typeIcon = { milestone: "ni-milestone", verification: "ni-verification", mentor: "ni-mentor", info: "ni-info" };
-  const typeFA   = { milestone: "fa-trophy", verification: "fa-check-circle", mentor: "fa-chalkboard-user", info: "fa-circle-info" };
-
-  el.innerHTML = `<div class="notif-list">${ns.map(n => `
-    <div class="notif-item ${String(n.read) === 'false' ? 'unread' : ''}" onclick="readNotif('${n.id}',this)">
-      <div class="notif-icon ${typeIcon[n.type] || 'ni-info'}">
-        <i class="fas ${typeFA[n.type] || 'fa-circle-info'}"></i>
-      </div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:${String(n.read) === 'false' ? '600' : '400'}">${n.message}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">${timeAgo(n.timestamp)}</div>
-      </div>
-      ${String(n.read) === 'false' ? '<div style="width:7px;height:7px;border-radius:50%;background:var(--role-primary);flex-shrink:0"></div>' : ""}
-    </div>
-  `).join("")}</div>`;
-}
-
-async function readNotif(id, el) {
-  el.classList.remove("unread");
-  await api("markAsRead", { id });
-  updateNotifBadge();
-}
-
-async function markAllRead() {
-  await api("markAsRead", { userId: currentUser.id });
-  loadNotifications();
-  updateNotifBadge();
-  toast("All notifications read.", "success");
-}
-
-async function updateNotifBadge() {
-  const res = await api("getNotifications", { userId: currentUser.id, unreadOnly: "true" });
-  const count = res.notifications?.length || 0;
-  const badge = document.getElementById("notifBadge");
-  if (count > 0) { badge.textContent = count > 9 ? "9+" : count; badge.classList.remove("hidden"); }
-  else badge.classList.add("hidden");
-}
-
-function startPolling() {
-  if (pollingInterval) clearInterval(pollingInterval);
-  pollingInterval = setInterval(async () => {
-    updateNotifBadge();
-    const active = document.querySelector(".panel.active");
-    if (!active) return;
-    switch (active.id) {
-      case "dashPanel":        loadDashboard(); break;
-      case "feedPanel":        loadMilestones(); break;
-      case "goalsPanel":       loadGoals(); break;
-      case "notifPanel":       loadNotifications(); break;
-      case "analyzePanel":     loadAnalyze(); break;
-      case "leaderboardPanel": loadLeaderboardPage(); break;
-    }
-  }, 5000);
-}
-
-function showModal(html, wide = false) {
-  document.getElementById("modalContainer").innerHTML = `
-    <div class="modal-overlay" onclick="overlayClose(event)">
-      <div class="modal ${wide ? 'modal-wide' : ''}">${html}</div>
-    </div>
-  `;
+function showModal(html) {
+  document.getElementById("modalContainer").innerHTML = `<div class="modal-overlay" onclick="if(event.target.classList.contains('modal-overlay'))closeModal()"><div class="modal">${html}</div></div>`;
 }
 function closeModal() { document.getElementById("modalContainer").innerHTML = ""; }
-function overlayClose(e) { if (e.target.classList.contains("modal-overlay")) closeModal(); }
-
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, ch => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  }[ch]));
-}
-
-function escapeAttr(value) { return escapeHtml(value); }
-
-function formatDate(d) {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
-
-function timeAgo(ts) {
-  const diff = Date.now() - new Date(ts).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
-async function submitPasswordChange() {
-  const current = document.getElementById("pwCurrent").value;
-  const next = document.getElementById("pwNew").value;
-  const confirmPw = document.getElementById("pwConfirm").value;
-
-  if (!current || !next || !confirmPw) { toast("All fields are required.", "error"); return; }
-  if (next !== confirmPw) { toast("New passwords do not match.", "error"); return; }
-  if (next.length < 4) { toast("New password must be at least 4 characters.", "error"); return; }
-
-  const res = await api("changePassword", {
-    userId: currentUser.id,
-    currentPassword: current,
-    newPassword: next,
-  });
-
-  if (res.success) {
-    toast("Password updated successfully.", "success");
-    document.getElementById("pwCurrent").value = "";
-    document.getElementById("pwNew").value = "";
-    document.getElementById("pwConfirm").value = "";
-  } else {
-    toast(res.error || "Failed to update password.", "error");
-  }
-}
 
 function logout() {
-  clearInterval(pollingInterval);
   currentUser = null;
   authToken = null;
-  refreshToken = null;
   localStorage.removeItem("tt_token");
-  localStorage.removeItem("tt_refresh_token");
-  allMilestones = [];
-  allUsers = [];
-  userFilters = { className: "", mentorId: "" };
-  analyzeFilters = { className: "", mentorId: "" };
   document.getElementById("appShell").classList.add("hidden");
   document.getElementById("loginPage").classList.remove("hidden");
-  document.getElementById("loginUser").value = "";
-  document.getElementById("loginPass").value = "";
-  document.getElementById("modalContainer").innerHTML = "";
-  toast("Logged out cleanly.", "info");
 }
 </script>
 </body>

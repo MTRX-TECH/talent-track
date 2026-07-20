@@ -1,17 +1,17 @@
 const mongoose = require('mongoose');
 
-const courseSchema = new mongoose.Schema({
-  code: { type: String, required: true, unique: true, uppercase: true, trim: true },
-  title: { type: String, required: true, trim: true },
-  departmentCode: { type: String, default: '' },
-  year: { type: Number, default: 1 },
-}, { timestamps: true });
+const courseSchema = new mongoose.Schema(
+  {
+    tenantId: { type: String, required: true, default: 'TNT_GLOBAL', index: true },
+    institutionId: { type: String, required: true, default: 'INST_GLOBAL', index: true },
+    code: { type: String, required: true },
+    title: { type: String, required: true },
+    departmentId: { type: String, default: '' },
+    year: { type: Number, default: 1 },
+  },
+  { timestamps: true }
+);
 
-courseSchema.methods.toJSON = function () {
-  const obj = this.toObject();
-  obj.id = obj._id.toString();
-  delete obj.__v;
-  return obj;
-};
+courseSchema.index({ tenantId: 1, code: 1 });
 
 module.exports = mongoose.model('Course', courseSchema);
