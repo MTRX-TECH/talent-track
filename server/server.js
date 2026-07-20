@@ -64,7 +64,6 @@ app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Legacy Apps Script Compatibility Route Adapter (`/exec` or `GET/POST /api`)
-// Ensures 100% backward compatibility with any raw action parameter requests
 const handleLegacyAction = async (req, res, next) => {
   try {
     const params = req.query || {};
@@ -122,14 +121,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve frontend index.html for root route if requested directly
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/index.html'));
+});
+
 // Centralized Error Handling Middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
   console.log(`TalentTrack Enterprise Server running on port ${PORT}`);
-  console.log(`API Endpoint: http://localhost:${PORT}/api`);
-  console.log(`Static Uploads: http://localhost:${PORT}/uploads`);
+  console.log(`API Endpoint: http://0.0.0.0:${PORT}/api`);
   console.log(`====================================================`);
 });
