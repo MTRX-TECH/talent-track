@@ -1,0 +1,11 @@
+{
+  "name": "talent-track-saas",
+  "version": "1.0.0",
+  "description": "TalentTrack — Enterprise Student Milestone Tracker",
+  "scripts": {
+    "install:all": "cd server && npm install",
+    "seed": "cd server && npm run seed",
+    "start": "cd server && npm start",
+    "dev": "cd server && npm run dev"
+  }
+}
