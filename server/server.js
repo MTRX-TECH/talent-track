@@ -8,6 +8,16 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+// Ensure uploads and logs folders exist before requiring logger/db
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+const logDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
 const connectDB = require('./config/db');
 const errorHandler = require('./middlewares/errorHandler');
 const logger = require('./utils/logger');
@@ -40,12 +50,6 @@ const notifController = require('./controllers/notifController');
 const statsController = require('./controllers/statsController');
 
 const app = express();
-
-// Ensure uploads folder exists on startup
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
 
 // Connect MongoDB
 connectDB();
