@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export function getToken() { return localStorage.getItem('talenttrack_token'); }
 export function setToken(token) { localStorage.setItem('talenttrack_token', token); }
