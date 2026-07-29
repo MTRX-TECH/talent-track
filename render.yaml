@@ -1,0 +1,23 @@
+# ==============================================================================
+# RENDER FREE TIER DEPLOYMENT MANIFEST — TALENTTRACK ENTERPRISE SAAS
+# ==============================================================================
+
+services:
+  - type: web
+    name: talenttrack-enterprise-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/healthcheck
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
