@@ -103,7 +103,14 @@ app.get('*', (req, res) => {
   const indexPath = path.join(reactDistPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
-      res.sendFile(path.join(__dirname, 'index.html'));
+      res.status(500).send(`
+        <div style="font-family: system-ui, sans-serif; padding: 40px; text-align: center;">
+          <h2>⚠️ Frontend Build Missing</h2>
+          <p>The React SPA could not be found at <code>client/dist/index.html</code>.</p>
+          <p>If you are deploying this application, ensure your build script runs:<br/><br/>
+          <code>npm install --prefix client && npm run build --prefix client</code></p>
+        </div>
+      `);
     }
   });
 });
