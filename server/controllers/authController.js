@@ -72,6 +72,7 @@ exports.login = async (req, res) => {
     const payload = {
       id: user._id || user.id,
       name: user.name,
+      username: user.username,
       email: user.email,
       role: user.role,
       tenantId: user.tenantId || tenantId,
@@ -191,6 +192,41 @@ exports.resetPassword = async (req, res) => {
     }).catch(() => null);
 
     res.json({ success: true, message: 'Password updated successfully.', user: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.forgotPasswordDirect = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Email and new password (min 6 chars) are required.' });
+    }
+
+    const passwordHash = bcrypt.hashSync(newPassword, 10);
+    
+    // Find the user globally
+    const user = await dataService.findOne('users', { email: email.trim().toLowerCase(), bypassTenantScope: true });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Account not found with this email address.' });
+    }
+
+    // Update their password
+    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { passwordHash }, 'global');
+    
+    // Log the action
+    await dataService.create('auditLogs', {
+      tenantId: user.tenantId || 'global',
+      actorId: user._id,
+      actorName: user.username || user.email || 'User',
+      action: 'DIRECT_PASSWORD_RESET',
+      resource: 'AuthService',
+      details: `User ${user.email} directly reset their password from the login screen.`
+    }).catch(() => null);
+
+    res.json({ success: true, message: 'Password has been reset. You can now log in.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

@@ -40,14 +40,26 @@ router.get('/healthcheck', (req, res) => {
   res.json({
     status: 'ONLINE',
     system: 'TalentTrack Enterprise SaaS API',
-    dbMode: mongoose.connection.readyState === 1 ? 'atlas' : 'memory-fallback',
+    dbMode: mongoose.connection.readyState === 1 ? 'atlas' : 'offline',
     timestamp: new Date().toISOString(),
-    infra: '$0.00/mo Cloudflare R2 + Render + MongoDB Atlas Free Tier'
+    infra: '$0.00/mo Cloudflare R2 + Render + MongoDB Atlas Free Tier',
+    diagnostics: {
+      dbConnected: mongoose.connection.readyState === 1,
+      envVars: {
+        MONGODB_URI: !!process.env.MONGODB_URI,
+        JWT_SECRET: !!process.env.JWT_SECRET,
+        JWT_REFRESH_SECRET: !!process.env.JWT_REFRESH_SECRET,
+        CLOUDFLARE_ACCOUNT_ID: !!process.env.CLOUDFLARE_ACCOUNT_ID,
+        R2_BUCKET_NAME: !!process.env.R2_BUCKET_NAME,
+        RAZORPAY_KEY_ID: !!process.env.RAZORPAY_KEY_ID
+      }
+    }
   });
 });
 
 // Auth Routes
 router.post('/auth/login', resolveTenantContext, authController.login);
+router.post('/auth/forgot-password', authController.forgotPasswordDirect);
 router.post('/auth/refresh', resolveTenantContext, authController.refreshToken);
 router.get('/auth/me', resolveTenantContext, authMiddleware, authController.getMe);
 router.post('/auth/reset-password', resolveTenantContext, authMiddleware, authController.resetPassword);

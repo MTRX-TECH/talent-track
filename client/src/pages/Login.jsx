@@ -5,6 +5,8 @@ import { apiFetch, setToken } from '../services/api';
 import { ToastContext } from '../App';
 import TeamInfoModal from '../components/TeamInfoModal';
 import InstitutionOnboardingModal from '../components/InstitutionOnboardingModal';
+import ResetPasswordModal from '../components/ResetPasswordModal';
+import SystemDiagnosticsModal from '../components/SystemDiagnosticsModal';
 
 const ROLES = [
   { id: 'superadmin', label: 'Super Admin',  icon: Shield,        desc: 'Platform level' },
@@ -23,6 +25,8 @@ export default function Login() {
   const [error, setError]     = useState('');
   const [showInfo, setShowInfo] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
   const { addToast }          = useContext(ToastContext);
   const navigate              = useNavigate();
 
@@ -112,7 +116,7 @@ export default function Login() {
               <label className="input-label" style={{ margin: 0 }}>Account Password</label>
               <span 
                 style={{ fontSize: '0.72rem', color: 'var(--role-primary)', cursor: 'pointer', fontWeight: '500' }}
-                onClick={() => addToast('info', 'Forgot Password', 'Please contact your institution Admin or Super Admin to reset your password.')}
+                onClick={() => setShowResetPassword(true)}
               >
                 Forgot Password?
               </span>
@@ -143,11 +147,14 @@ export default function Login() {
         <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-faint)' }}>
           Protected by Multi-Tenant Zero-Trust JWT Authentication
           <br />
-          <strong style={{ color: 'var(--text-muted)' }}>MTRX TECH</strong> · Enterprise Edition · <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowInfo(true)}>About Team</span>
+          <strong style={{ color: 'var(--text-muted)' }}>MTRX TECH</strong> · Enterprise Edition<br />
+          <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowInfo(true)}>About Team</span> · <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowDiagnostics(true)}>System Diagnostics</span>
         </div>
       </div>
       <TeamInfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
       <InstitutionOnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
+      <ResetPasswordModal isOpen={showResetPassword} onClose={() => setShowResetPassword(false)} addToast={addToast} />
+      <SystemDiagnosticsModal isOpen={showDiagnostics} onClose={() => setShowDiagnostics(false)} />
     </div>
   );
 }
