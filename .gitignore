@@ -18,3 +18,6 @@ Thumbs.db
 dist/
 build/
 *.log
+
+# Utility scripts
+clear-users.js
