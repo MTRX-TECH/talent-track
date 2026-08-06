@@ -292,7 +292,7 @@ function StudentsPanel({ addToast }) {
           <div className="grid-cols-2 mb-20">
             <div className="card">
               <div className="flex items-center gap-12 mb-16">
-                <div className="user-avatar" style={{ width:'48px',height:'48px',fontSize:'1.2rem' }}>{selectedStudent.name.slice(0,2).toUpperCase()}</div>
+                <div className="user-avatar" style={{ width:'48px',height:'48px',fontSize:'1.2rem' }}>{(selectedStudent.name || 'ST').slice(0,2).toUpperCase()}</div>
                 <div>
                   <h3 style={{ margin: 0 }}>{selectedStudent.name}</h3>
                   <div className="text-muted text-sm">{selectedStudent.email}</div>
@@ -410,7 +410,7 @@ function StudentsPanel({ addToast }) {
                 <tr><td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No students assigned yet.</td></tr>
               ) : students.map((s, i) => (
                 <tr key={s._id || i}>
-                  <td><div className="flex items-center gap-8"><div className="user-avatar" style={{ width:'28px',height:'28px',minWidth:'28px',fontSize:'0.68rem' }}>{s.name.slice(0,2).toUpperCase()}</div><strong>{s.name}</strong></div></td>
+                  <td><div className="flex items-center gap-8"><div className="user-avatar" style={{ width:'28px',height:'28px',minWidth:'28px',fontSize:'0.68rem' }}>{(s.name || 'ST').slice(0,2).toUpperCase()}</div><strong>{s.name || 'Unknown'}</strong></div></td>
                   <td className="text-muted text-sm">{s.email}</td>
                   <td><span className={`badge badge-${s.isActive ? 'success' : 'danger'}`}>{s.isActive ? 'Active' : 'Inactive'}</span></td>
                   <td>

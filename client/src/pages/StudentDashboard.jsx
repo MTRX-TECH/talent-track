@@ -575,7 +575,7 @@ function LeaderboardPanel() {
                     <td><strong style={{ fontSize: '1rem' }}>{e.badge || `#${e.rank}`}</strong></td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="user-avatar" style={{ width: '30px', height: '30px', minWidth: '30px', fontSize: '0.7rem' }}>{e.name.slice(0,2).toUpperCase()}</div>
+                        <div className="user-avatar" style={{ width: '30px', height: '30px', minWidth: '30px', fontSize: '0.7rem' }}>{(e.name || 'ST').slice(0,2).toUpperCase()}</div>
                         <strong>{e.name}</strong>
                       </div>
                     </td>

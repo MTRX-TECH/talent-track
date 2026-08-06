@@ -2,6 +2,7 @@ const User = require('../models/User');
 const xlsx = require('xlsx');
 const bcrypt = require('bcryptjs');
 const dataService = require('../services/dataService');
+const crypto = require('crypto');
 
 exports.previewImport = async (req, res) => {
   try {
