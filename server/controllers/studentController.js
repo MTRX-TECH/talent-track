@@ -10,7 +10,7 @@ exports.getStudents = async (req, res) => {
 
     const safeStudents = students
       .map(s => {
-        const copy = { ...s };
+        const copy = { ...(s.toObject ? s.toObject() : s) };
         delete copy.passwordHash;
 
         const studentMilestones = milestones.filter(m => String(m.studentId) === String(s._id) || String(m.studentId) === String(s.id));
@@ -64,7 +64,8 @@ exports.deleteStudent = async (req, res) => {
         // Audit log parent cascade deletion
         await dataService.create('auditLogs', {
           tenantId: req.tenantId,
-          user: req.user.id || req.user.email,
+          actorId: req.user.id || 'system',
+          actorName: req.user.name || req.user.email || 'System',
           action: 'CASCADE_DELETE_PARENT',
           resource: 'User',
           details: `Automatically deleted associated parent account (${p.email || p._id}) when student login (${target.email || id}) was deleted.`,
@@ -76,7 +77,8 @@ exports.deleteStudent = async (req, res) => {
     // Audit log student deletion
     await dataService.create('auditLogs', {
       tenantId: req.tenantId,
-      user: req.user.id || req.user.email,
+      actorId: req.user.id || 'system',
+      actorName: req.user.name || req.user.email || 'System',
       action: 'DELETE_STUDENT',
       resource: 'User',
       details: `Deleted student login: ${target.name} (${target.email || id}). Cascaded to delete ${deletedParentsCount} linked parent account(s).`,
@@ -153,7 +155,8 @@ exports.setupParent = async (req, res) => {
       req.tenantId
     );
 
-    const safeStudent = { ...(updatedStudent || req.user) };
+    const baseObj = updatedStudent ? (updatedStudent.toObject ? updatedStudent.toObject() : updatedStudent) : req.user;
+    const safeStudent = { ...baseObj };
     delete safeStudent.passwordHash;
     safeStudent.needsParentLogin = false;
     safeStudent.parentEmail = createdParent.email;
