@@ -27,7 +27,9 @@ const UserSchema = new mongoose.Schema({
   resumeStrengthIndex: { type: Number, default: 0, min: 0, max: 100 },
   needsPasswordChange: { type: Boolean, default: false },
   needsParentLogin: { type: Boolean, default: false },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  resetOtp: { type: String, default: null },
+  resetOtpExpiry: { type: Date, default: null }
 }, { timestamps: true });
 
 UserSchema.index({ tenantId: 1, email: 1 }, { unique: true });

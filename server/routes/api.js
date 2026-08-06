@@ -59,6 +59,7 @@ router.get('/healthcheck', (req, res) => {
 
 // Auth Routes
 router.post('/auth/login', resolveTenantContext, authController.login);
+router.post('/auth/request-otp', authController.requestPasswordResetOtp);
 router.post('/auth/forgot-password', authController.forgotPasswordDirect);
 router.post('/auth/refresh', resolveTenantContext, authController.refreshToken);
 router.get('/auth/me', resolveTenantContext, authMiddleware, authController.getMe);

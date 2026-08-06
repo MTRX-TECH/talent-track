@@ -1,8 +1,19 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const dataService = require('../services/dataService');
 const PlatformSettings = require('../models/PlatformSettings');
 const Tenant = require('../models/Tenant');
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+  port: parseInt(process.env.SMTP_PORT || '587', 10),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'talenttrack-production-super-secret-key-2026';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'talenttrack-production-super-refresh-key-2026';
@@ -197,24 +208,54 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+exports.requestPasswordResetOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email is required.' });
+
+    const user = await dataService.findOne('users', { email: email.trim().toLowerCase(), bypassTenantScope: true });
+    if (!user) return res.status(404).json({ success: false, message: 'Account not found with this email address.' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { resetOtp: otp, resetOtpExpiry: expiry }, 'global');
+
+    if (process.env.SMTP_USER) {
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || '"TalentTrack Support" <noreply@talenttrack.com>',
+        to: user.email,
+        subject: 'Password Reset OTP',
+        text: `Your password reset OTP is ${otp}. It will expire in 10 minutes.`
+      }).catch(console.error);
+    } else {
+      console.log(`\n\n[DEV_MODE] OTP for ${user.email} is: ${otp}\n\n`);
+    }
+
+    res.json({ success: true, message: 'OTP sent to email.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.forgotPasswordDirect = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
-    if (!email || !newPassword || newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: 'Email and new password (min 6 chars) are required.' });
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Email, OTP, and new password (min 6 chars) are required.' });
+    }
+
+    const user = await dataService.findOne('users', { email: email.trim().toLowerCase(), bypassTenantScope: true });
+    if (!user) return res.status(404).json({ success: false, message: 'Account not found with this email address.' });
+
+    if (!user.resetOtp || user.resetOtp !== otp || new Date() > user.resetOtpExpiry) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP.' });
     }
 
     const passwordHash = bcrypt.hashSync(newPassword, 10);
     
-    // Find the user globally
-    const user = await dataService.findOne('users', { email: email.trim().toLowerCase(), bypassTenantScope: true });
-    
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'Account not found with this email address.' });
-    }
-
-    // Update their password
-    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { passwordHash }, 'global');
+    // Update their password and clear OTP
+    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { passwordHash, resetOtp: null, resetOtpExpiry: null }, 'global');
     
     // Log the action
     await dataService.create('auditLogs', {
@@ -223,7 +264,7 @@ exports.forgotPasswordDirect = async (req, res) => {
       actorName: user.username || user.email || 'User',
       action: 'DIRECT_PASSWORD_RESET',
       resource: 'AuthService',
-      details: `User ${user.email} directly reset their password from the login screen.`
+      details: `User ${user.email} directly reset their password with email OTP verification.`
     }).catch(() => null);
 
     res.json({ success: true, message: 'Password has been reset. You can now log in.' });
