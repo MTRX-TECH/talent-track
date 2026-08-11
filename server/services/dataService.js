@@ -51,7 +51,12 @@ const dataService = {
 
   async find(collectionName, filter = {}, tenantId = null) {
     ensureActiveDatabase();
-    const finalFilter = tenantId ? { tenantId, ...filter } : filter;
+    const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
+    const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
+    if (isGlobal) {
+      delete finalFilter.bypassRoleScope;
+      delete finalFilter.bypassTenantScope;
+    }
     if (!models[collectionName]) {
       throw new Error(`Model for collection '${collectionName}' does not exist.`);
     }
@@ -60,7 +65,12 @@ const dataService = {
 
   async findOne(collectionName, filter = {}, tenantId = null) {
     ensureActiveDatabase();
-    const finalFilter = tenantId ? { tenantId, ...filter } : filter;
+    const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
+    const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
+    if (isGlobal) {
+      delete finalFilter.bypassRoleScope;
+      delete finalFilter.bypassTenantScope;
+    }
     if (!models[collectionName]) {
       throw new Error(`Model for collection '${collectionName}' does not exist.`);
     }
@@ -78,7 +88,12 @@ const dataService = {
 
   async updateOne(collectionName, filter = {}, updateData = {}, tenantId = null) {
     ensureActiveDatabase();
-    const finalFilter = tenantId ? { tenantId, ...filter } : filter;
+    const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
+    const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
+    if (isGlobal) {
+      delete finalFilter.bypassRoleScope;
+      delete finalFilter.bypassTenantScope;
+    }
     if (!models[collectionName]) {
       throw new Error(`Model for collection '${collectionName}' does not exist.`);
     }
@@ -87,7 +102,12 @@ const dataService = {
 
   async deleteOne(collectionName, filter = {}, tenantId = null) {
     ensureActiveDatabase();
-    const finalFilter = tenantId ? { tenantId, ...filter } : filter;
+    const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
+    const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
+    if (isGlobal) {
+      delete finalFilter.bypassRoleScope;
+      delete finalFilter.bypassTenantScope;
+    }
     if (!models[collectionName]) {
       throw new Error(`Model for collection '${collectionName}' does not exist.`);
     }
@@ -96,7 +116,12 @@ const dataService = {
 
   async deleteMany(collectionName, filter = {}, tenantId = null) {
     ensureActiveDatabase();
-    const finalFilter = tenantId ? { tenantId, ...filter } : filter;
+    const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
+    const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
+    if (isGlobal) {
+      delete finalFilter.bypassRoleScope;
+      delete finalFilter.bypassTenantScope;
+    }
     if (!models[collectionName]) {
       throw new Error(`Model for collection '${collectionName}' does not exist.`);
     }

@@ -74,6 +74,7 @@ router.get('/superadmin/tenants', resolveTenantContext, authMiddleware, checkRol
 router.post('/superadmin/tenants', resolveTenantContext, authMiddleware, checkRole(['superadmin']), tenantController.createTenant);
 router.post('/superadmin/tenants/manual', resolveTenantContext, authMiddleware, checkRole(['superadmin']), tenantController.manualCreateTenant);
 router.delete('/superadmin/tenants/:tenantId', resolveTenantContext, authMiddleware, checkRole(['superadmin']), tenantController.softDeleteTenant);
+router.delete('/superadmin/tenants/:tenantId/hard', resolveTenantContext, authMiddleware, checkRole(['superadmin']), tenantController.hardDeleteTenant);
 router.post('/superadmin/tenants/:tenantId/force-activate', resolveTenantContext, authMiddleware, checkRole(['superadmin']), tenantController.forceActivateSettlement);
 router.post('/superadmin/tenants/:tenantId/deactivate', resolveTenantContext, authMiddleware, checkRole(['superadmin']), tenantController.deactivateTenant);
 router.post('/superadmin/impersonate/:tenantId', resolveTenantContext, authMiddleware, checkRole(['superadmin']), tenantController.impersonateTenant);

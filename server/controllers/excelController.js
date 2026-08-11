@@ -37,6 +37,7 @@ exports.previewImport = async (req, res) => {
       const email = (row.Email || row.email || '').toString().toLowerCase().trim();
       const roleRaw = (row.Role || row.role || '').toString().toLowerCase();
       const departmentName = (row.Department || row.department || row.departmentName || '').toString().trim();
+      const className = (row['Class Name'] || row.Class || row.className || '').toString().trim();
 
       let status = 'VALID';
       let errorMsg = [];
@@ -79,6 +80,7 @@ exports.previewImport = async (req, res) => {
         email: email || '-',
         role: roleRaw || '-',
         departmentName: departmentName || '-',
+        className: className || '',
         status,
         errors: errorMsg.join(', ')
       };
@@ -125,6 +127,7 @@ exports.executeImport = async (req, res) => {
         username: u.email,
         role: cleanRole,
         departmentName: u.departmentName || '',
+        className: u.className || '',
         passwordHash,
         needsPasswordChange: true,
         needsParentLogin: cleanRole === 'student',

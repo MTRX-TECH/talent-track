@@ -24,6 +24,8 @@ export default function SuperAdminDashboard() {
   const [tempCredentials, setTempCredentials] = useState(null);
   const [deleteTarget, setDeleteTarget]   = useState(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [hardDeleteTarget, setHardDeleteTarget] = useState(null);
+  const [hardDeleteConfirmText, setHardDeleteConfirmText] = useState('');
   const { addToast }                      = useContext(ToastContext);
   const user = JSON.parse(localStorage.getItem('talenttrack_user') || '{}');
 
@@ -66,6 +68,21 @@ export default function SuperAdminDashboard() {
       setDeleteTarget(null);
       setDeleteConfirmText('');
       addToast('success', 'Queued for Deletion', `${deleteTarget.name} soft-deleted. Logins blocked.`);
+    } catch (err) { addToast('error', 'Failed', err.message); }
+  };
+
+  const handleHardDelete = async (e) => {
+    e.preventDefault();
+    if (hardDeleteConfirmText !== hardDeleteTarget.name) {
+      addToast('error', 'Mismatch', 'Institution name does not match.');
+      return;
+    }
+    try {
+      await apiFetch(`/superadmin/tenants/${hardDeleteTarget.slug || hardDeleteTarget._id}/hard`, { method: 'DELETE' });
+      setTenants(prev => prev.filter(t => (t._id || t.id) !== (hardDeleteTarget._id || hardDeleteTarget.id)));
+      setHardDeleteTarget(null);
+      setHardDeleteConfirmText('');
+      addToast('success', 'Institution Wiped', `${hardDeleteTarget.name} and all data was completely removed.`);
     } catch (err) { addToast('error', 'Failed', err.message); }
   };
 
@@ -194,6 +211,7 @@ export default function SuperAdminDashboard() {
                               {subStatus !== 'ACTIVE' && subStatus !== 'pending_deletion' && <button className="btn btn-success btn-sm" onClick={() => handleForceActivate(t.slug || t._id, t.name)}>Activate</button>}
                               {subStatus !== 'DISABLED' && subStatus !== 'pending_deletion' && <button className="btn btn-warning btn-sm" onClick={() => handleDeactivate(t.slug || t._id, t.name)} title="Deactivate"><PowerOff size={12} /></button>}
                               {subStatus !== 'pending_deletion' && <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(t)} title="Soft Delete"><Trash2 size={12} /></button>}
+                              <button className="btn btn-sm" style={{ background: 'var(--color-red)', color: 'white', border: 'none' }} onClick={() => setHardDeleteTarget(t)} title="Hard Delete Data">Hard Delete</button>
                             </div>
                           </td>
                         </tr>
@@ -208,7 +226,7 @@ export default function SuperAdminDashboard() {
             <div className="modal-overlay">
               <div className="modal-content" style={{ maxWidth: '500px' }}>
                 <h2 style={{ color: 'var(--color-red)' }}>Delete Institution</h2>
-                <p>Are you sure you want to delete <strong>{deleteTarget.name}</strong>? This will immediately block all logins. This action initiates a 30-day grace period for hard deletion.</p>
+                <p>Are you sure you want to delete <strong>{deleteTarget.name}</strong>? This will immediately block all logins. This action initiates a 12-day grace period before complete deletion.</p>
                 <div className="form-group mt-16">
                   <label>Type <strong>{deleteTarget.name}</strong> to confirm:</label>
                   <input type="text" value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)} placeholder={deleteTarget.name} className="form-input" />
@@ -216,6 +234,24 @@ export default function SuperAdminDashboard() {
                 <div className="flex gap-8 mt-24">
                   <button className="btn btn-danger" onClick={handleSoftDelete} disabled={deleteConfirmText !== deleteTarget.name}>Confirm Deletion</button>
                   <button className="btn btn-ghost" onClick={() => { setDeleteTarget(null); setDeleteConfirmText(''); }}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+          {hardDeleteTarget && (
+            <div className="modal-overlay">
+              <div className="modal-content" style={{ maxWidth: '500px', borderTop: '4px solid var(--color-red)' }}>
+                <h2 style={{ color: 'var(--color-red)' }}>DANGER: Hard Delete Institution</h2>
+                <div style={{ background: '#fee2e2', padding: '12px', borderRadius: '8px', color: '#b91c1c', marginBottom: '16px' }}>
+                  <strong>WARNING:</strong> This will instantly and permanently wipe <strong>{hardDeleteTarget.name}</strong> and <em>ALL</em> associated data (users, departments, goals, etc.). This cannot be undone.
+                </div>
+                <div className="form-group mt-16">
+                  <label>Type <strong>{hardDeleteTarget.name}</strong> to confirm destruction:</label>
+                  <input type="text" value={hardDeleteConfirmText} onChange={e => setHardDeleteConfirmText(e.target.value)} placeholder={hardDeleteTarget.name} className="form-input" />
+                </div>
+                <div className="flex gap-8 mt-24">
+                  <button className="btn btn-danger" onClick={handleHardDelete} disabled={hardDeleteConfirmText !== hardDeleteTarget.name}>DESTROY COMPLETELY</button>
+                  <button className="btn btn-ghost" onClick={() => { setHardDeleteTarget(null); setHardDeleteConfirmText(''); }}>Cancel</button>
                 </div>
               </div>
             </div>

@@ -78,8 +78,8 @@ const seedDatabase = async () => {
         tenantId: 'tenant-rit'
       },
       {
-        name: 'Dr. C. Krishnakala',
-        email: 'admin@rit.edu',
+        name: 'Dr. Jane Smith',
+        email: 'jane@univ.edu',
         username: 'admin',
         passwordHash: defaultHash,
         role: 'admin',
@@ -104,8 +104,8 @@ const seedDatabase = async () => {
         departmentId: dept._id
       },
       {
-        name: 'Durga Mikila S.V',
-        email: 'student.cse@rit.edu',
+        name: 'Student Alpha',
+        email: 'alpha@univ.edu',
         username: 'student',
         passwordHash: defaultHash,
         role: 'student',
@@ -115,8 +115,8 @@ const seedDatabase = async () => {
         placementReadinessScore: 88
       },
       {
-        name: 'Parent of Durga Mikila',
-        email: 'parent.cse@rit.edu',
+        name: 'Parent of Student Alpha',
+        email: 'parent_alpha@univ.edu',
         username: 'parent',
         passwordHash: defaultHash,
         role: 'parent',
@@ -212,10 +212,11 @@ const seedDatabase = async () => {
             proofDocumentUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&q=80',
             status: 'NEEDS_REVISION',
             points: 250,
-            rejectionReason: 'Please attach official IEEE digital library DOI link.'
+            rejectionReason: 'Please attach official IEEE digital library DOI link.',
+            milestoneName: 'AWS Certified Cloud Practitioner'
           }
         ]);
-        console.log('[SEED] Seeded initial milestones for Durga Mikila S.V');
+        console.log('[SEED] Seeded initial milestones for Student Alpha');
       }
 
       const offerCount = await OfferLetter.countDocuments({ studentId: studentUser._id });
@@ -230,9 +231,10 @@ const seedDatabase = async () => {
           offerLetterUrl: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?w=600&q=80',
           acceptanceStatus: 'ACCEPTED',
           acceptanceDeadline: '2026-08-30',
-          joiningDate: '2026-07-01'
+          joiningDate: '2026-07-01',
+          offeredPackage: 1500000
         });
-        console.log('[SEED] Seeded initial offer letter for Durga Mikila S.V');
+        console.log('[SEED] Seeded initial offer letter for Student Alpha');
       }
 
       const internCount = await Internship.countDocuments({ studentId: studentUser._id });
@@ -244,14 +246,14 @@ const seedDatabase = async () => {
           companyName: 'Amazon Web Services',
           role: 'Cloud & AI Engineer Intern',
           durationDays: 60,
-          stipendAmount: 30000,
+          stipendAmount: 25000,
           startDate: '2026-05-01',
           endDate: '2026-07-01',
           status: 'VERIFIED',
           reviewedBy: 'Dr. Murugan S',
           prsContributionPoints: 30
         });
-        console.log('[SEED] Seeded initial internship for Durga Mikila S.V');
+        console.log('[SEED] Seeded initial internship for Student Alpha');
       }
     }
 

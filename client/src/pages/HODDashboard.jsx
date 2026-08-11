@@ -202,6 +202,8 @@ export default function HODDashboard() {
   const [milestones, setMilestones]       = useState([]);
   const [mentors, setMentors]             = useState([]);
   const [students, setStudents]           = useState([]);
+  const [filterClass, setFilterClass]     = useState('All');
+  const [filterMentor, setFilterMentor]   = useState('All');
   const [loading, setLoading]             = useState(true);
   const { addToast }                      = useContext(ToastContext);
   const user = JSON.parse(localStorage.getItem('talenttrack_user') || '{}');
@@ -232,6 +234,22 @@ export default function HODDashboard() {
   const placedCount = deptStudents.filter(s => s.hasOffer).length;
   const placementRate = deptStudents.length > 0 ? Math.round((placedCount / deptStudents.length) * 100) + '%' : '0%';
   const atRiskList = deptStudents.filter(s => (s.prs || 0) < 50);
+
+  const uniqueClasses = ['All', ...new Set(deptStudents.map(s => s.className).filter(Boolean))];
+  const uniqueMentors = ['All', ...new Set(deptStudents.map(s => {
+    const m = mentors.find(mnt => (mnt._id || mnt.id) === s.assignedMentorId);
+    return m ? m.name : (s.assignedMentorId ? 'Assigned' : 'Unassigned');
+  }))];
+
+  const filteredStudents = deptStudents.filter(s => {
+    if (filterClass !== 'All' && s.className !== filterClass) return false;
+    if (filterMentor !== 'All') {
+      const m = mentors.find(mnt => (mnt._id || mnt.id) === s.assignedMentorId);
+      const mName = m ? m.name : (s.assignedMentorId ? 'Assigned' : 'Unassigned');
+      if (mName !== filterMentor) return false;
+    }
+    return true;
+  });
 
   const handleReassign = () => {
     addToast('success', 'Mentor Reassigned', 'Student reassigned and audit log updated.');
@@ -314,24 +332,51 @@ export default function HODDashboard() {
       case 'students':
         return (
           <div>
-            <div className="section-header"><div className="section-title">At-Risk Students</div></div>
+            <div className="section-header"><div className="section-title">Student Reports</div></div>
+            
+            <div className="flex gap-16 mb-16">
+              <div className="form-group" style={{ minWidth: '200px' }}>
+                <label className="form-label">Filter by Class</label>
+                <select className="form-input" value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                  {uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="form-group" style={{ minWidth: '200px' }}>
+                <label className="form-label">Filter by Mentor</label>
+                <select className="form-input" value={filterMentor} onChange={e => setFilterMentor(e.target.value)}>
+                  {uniqueMentors.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+            </div>
+
             <div className="card">
               <div className="table-wrapper">
                 <table>
-                  <thead><tr><th>Student</th><th>Roll No</th><th>PRS Score</th><th>Risk Level</th><th>Action</th></tr></thead>
+                  <thead><tr><th>Student</th><th>Roll No & Class</th><th>Mentor</th><th>PRS Score</th><th>Risk Level</th></tr></thead>
                   <tbody>
-                    {atRiskList.length === 0 ? (
-                      <tr><td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No at-risk students identified currently.</td></tr>
+                    {filteredStudents.length === 0 ? (
+                      <tr><td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No students match the filters.</td></tr>
                     ) : (
-                      atRiskList.map((s, idx) => (
-                        <tr key={s._id || idx}>
-                          <td><strong>{s.name}</strong><br/><span className="text-muted text-sm">{s.email}</span></td>
-                          <td>{s.rollNumber || 'N/A'}</td>
-                          <td><span className="badge badge-danger">{s.prs || 0}</span></td>
-                          <td><span className="badge badge-danger">High Risk</span></td>
-                          <td><button className="btn btn-outline btn-sm" onClick={() => addToast('info', 'Alert Sent', `Notification triggered for ${s.name}`)}>Notify Mentor</button></td>
-                        </tr>
-                      ))
+                      filteredStudents.map((s, idx) => {
+                        const isAtRisk = (s.prs || 0) < 50;
+                        const m = mentors.find(mnt => (mnt._id || mnt.id) === s.assignedMentorId);
+                        const mentorName = m ? m.name : 'Unassigned';
+                        
+                        return (
+                          <tr key={s._id || idx}>
+                            <td><strong>{s.name}</strong><br/><span className="text-muted text-sm">{s.email}</span></td>
+                            <td>
+                              {s.rollNumber || 'N/A'}
+                              <br/><span className="text-muted text-sm">{s.className || 'No Class'}</span>
+                            </td>
+                            <td>{mentorName}</td>
+                            <td><span className={`badge badge-${isAtRisk ? 'danger' : 'success'}`}>{s.prs || 0}</span></td>
+                            <td>
+                              {isAtRisk ? <span className="badge badge-danger">High Risk</span> : <span className="badge badge-success">On Track</span>}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

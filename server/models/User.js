@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema({
   parentUserId: { type: mongoose.Schema.Types.Mixed, ref: 'User', default: null },
   parentEmail: { type: String, default: null },
   rollNumber: { type: String, default: '' },
+  className: { type: String, default: '' },
   academicYear: { type: String, default: '2025-2026' },
   gpa: { type: Number, default: null },
   internshipDays: { type: Number, default: null },

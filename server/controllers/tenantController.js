@@ -530,6 +530,8 @@ exports.softDeleteTenant = async (req, res) => {
     if (!tenant) return res.status(404).json({ success: false, message: 'Tenant not found.' });
 
     tenant.subscription.status = 'pending_deletion';
+    // 12 days grace period
+    tenant.subscription.gracePeriodExpiresAt = new Date(Date.now() + 12 * 24 * 60 * 60 * 1000);
     await tenant.save();
 
     await AuditLog.create({
@@ -539,10 +541,43 @@ exports.softDeleteTenant = async (req, res) => {
       action: 'TENANT_SOFT_DELETED',
       resource: `Tenant:${tenant.slug}`,
       viaImpersonation: !!req.isImpersonating,
-      details: 'Tenant marked for deletion (grace period started).'
+      details: 'Tenant marked for deletion with a 12-day grace period.'
     }).catch(() => null);
 
-    res.json({ success: true, message: `Institution ${tenant.name} queued for deletion. Logins are now blocked.` });
+    res.json({ success: true, message: `Institution ${tenant.name} queued for deletion in 12 days. Logins are now blocked.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Hard Delete Tenant (Super Admin)
+exports.hardDeleteTenant = async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const tenant = await Tenant.findOne({ slug: tenantId }) || await Tenant.findById(tenantId).catch(() => null);
+    
+    if (!tenant) return res.status(404).json({ success: false, message: 'Tenant not found.' });
+
+    const slug = tenant.slug;
+
+    // Delete all associated data
+    const collectionsToWipe = [
+      'users', 'departments', 'milestones', 'goals', 'notifications', 
+      'auditLogs', 'placementSeasons', 'companies', 'recruiterProfiles', 
+      'placementDrives', 'placementApplications', 'interviews', 'offers', 
+      'internships', 'portfolio', 'resumeVersions', 'assessments', 
+      'assessmentAttempts', 'questions', 'certificates', 'badges', 
+      'careerChats', 'parentAlerts', 'parentQueries'
+    ];
+
+    for (let col of collectionsToWipe) {
+      await dataService.deleteMany(col, { bypassRoleScope: true, bypassTenantScope: true }, slug).catch(() => null);
+    }
+
+    // Finally, completely wipe the tenant document
+    await Tenant.findOneAndDelete({ slug });
+
+    res.json({ success: true, message: `Institution ${tenant.name} and all its data have been permanently wiped.` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

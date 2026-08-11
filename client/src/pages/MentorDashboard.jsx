@@ -198,7 +198,7 @@ function StudentsPanel({ addToast }) {
   const [importLoading, setImportLoading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [showManualForm, setShowManualForm] = useState(false);
-  const [manualForm, setManualForm] = useState({ name: '', email: '', role: 'student' });
+  const [manualForm, setManualForm] = useState({ name: '', email: '', role: 'student', className: '' });
   const [generatedCredentials, setGeneratedCredentials] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
@@ -263,7 +263,7 @@ function StudentsPanel({ addToast }) {
         setGeneratedCredentials(r.credentials);
       }
       setShowManualForm(false);
-      setManualForm({ name: '', email: '', role: 'student' });
+      setManualForm({ name: '', email: '', role: 'student', className: '' });
       fetchStudents();
     } catch (err) {
       addToast('error', 'Creation Failed', err.message);
@@ -286,7 +286,7 @@ function StudentsPanel({ addToast }) {
   if (selectedStudent) {
     return (
       <div>
-        <div className="section-header"><div className="section-title">Student Drilldown</div></div>
+        <div className="section-header"><div className="section-title">Student Report</div></div>
         <div className="animate-slideup">
           <button className="btn btn-ghost btn-sm mb-16" onClick={() => setSelectedStudent(null)}>← Back to Mentees</button>
           <div className="grid-cols-2 mb-20">
@@ -297,6 +297,9 @@ function StudentsPanel({ addToast }) {
                   <h3 style={{ margin: 0 }}>{selectedStudent.name}</h3>
                   <div className="text-muted text-sm">{selectedStudent.email}</div>
                 </div>
+              </div>
+              <div className="flex items-center justify-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--card-border)' }}>
+                <span className="text-muted text-sm">Class Details</span><strong>{selectedStudent.className || 'N/A'}</strong>
               </div>
               <div className="flex items-center justify-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--card-border)' }}>
                 <span className="text-muted text-sm">Overall PRS</span><strong style={{ color: 'var(--color-green)' }}>{selectedStudent.placementReadinessScore || 0}</strong>
@@ -345,9 +348,10 @@ function StudentsPanel({ addToast }) {
         <div className="card mb-20 animate-slideup">
           <h3 style={{ marginBottom: '16px' }}>Create Student Login</h3>
           <form onSubmit={handleManualCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
               <div className="form-group"><label className="form-label">Full Name</label><input value={manualForm.name} onChange={e => setManualForm(f=>({...f,name:e.target.value}))} required placeholder="Student Name" /></div>
               <div className="form-group"><label className="form-label">Email Address</label><input type="email" value={manualForm.email} onChange={e => setManualForm(f=>({...f,email:e.target.value}))} required placeholder="student@univ.edu" /></div>
+              <div className="form-group"><label className="form-label">Class Details</label><input type="text" value={manualForm.className} onChange={e => setManualForm(f=>({...f,className:e.target.value}))} placeholder="e.g. CSE-A, 4th Year" /></div>
             </div>
             <div className="flex gap-8 mt-8">
               <button type="submit" className="btn btn-primary btn-sm" disabled={importLoading}>{importLoading ? 'Creating...' : 'Create Student'}</button>
@@ -360,7 +364,7 @@ function StudentsPanel({ addToast }) {
       {!generatedCredentials && !showManualForm && (
       <div className="card mb-20">
         <h3>Bulk Student Import</h3>
-        <p className="text-muted text-sm mb-16">Upload a CSV or Excel file containing student details. Columns required: Name, Email, Role (must be student).</p>
+        <p className="text-muted text-sm mb-16">Upload a CSV or Excel file containing student details. Columns required: Name, Email, Role (must be student). Optional: Class Name.</p>
         {!preview ? (
           <div className="flex gap-8">
             <label className={`btn btn-primary ${importLoading ? 'disabled' : ''}`} style={{ cursor: 'pointer' }}>
@@ -414,7 +418,7 @@ function StudentsPanel({ addToast }) {
                   <td className="text-muted text-sm">{s.email}</td>
                   <td><span className={`badge badge-${s.isActive ? 'success' : 'danger'}`}>{s.isActive ? 'Active' : 'Inactive'}</span></td>
                   <td>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setSelectedStudent(s)}>Drilldown</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setSelectedStudent(s)}>View Report</button>
                     <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-red)', marginLeft: '8px' }} onClick={() => handleDelete(s._id)}>Delete</button>
                   </td>
                 </tr>

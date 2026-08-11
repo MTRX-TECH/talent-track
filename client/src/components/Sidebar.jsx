@@ -44,7 +44,7 @@ const NAV_CONFIG = {
       { id: 'mentors',     label: 'Mentor Management',   icon: Users },
     ]},
     { label: 'OPERATIONS', items: [
-      { id: 'students',    label: 'Student Risk View',   icon: GraduationCap },
+      { id: 'students',    label: 'Student Reports',     icon: GraduationCap },
       { id: 'milestones',  label: 'Milestone Overview',  icon: Award },
     ]},
   ],

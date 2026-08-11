@@ -21,7 +21,7 @@ exports.scheduleInterview = async (req, res) => {
       driveId,
       companyName: companyName || 'Google India',
       studentId: studentId || req.user.id,
-      studentName: studentName || 'Durga Mikila S.V',
+      studentName: studentName || 'Student Name',
       interviewerName: interviewerName || 'Panel 1 Lead',
       roundName: roundName || 'Technical Interview Round 1',
       scheduledTime: scheduledTime || new Date(Date.now() + 2*24*60*60*1000).toISOString(),

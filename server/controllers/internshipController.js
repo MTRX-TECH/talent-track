@@ -20,7 +20,7 @@ exports.submitInternship = async (req, res) => {
     const internship = new Internship({
       tenantId: req.tenantId,
       studentId: req.user.id || 'usr-student',
-      studentName: req.user.name || 'Durga Mikila S.V',
+      studentName: req.user.name || 'Student Name',
       companyName: companyName || 'Amazon Web Services',
       role: role || 'Cloud Infrastructure Intern',
       durationDays: durationDays || 60,
