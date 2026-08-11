@@ -204,6 +204,7 @@ export default function HODDashboard() {
   const [students, setStudents]           = useState([]);
   const [filterClass, setFilterClass]     = useState('All');
   const [filterMentor, setFilterMentor]   = useState('All');
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [loading, setLoading]             = useState(true);
   const { addToast }                      = useContext(ToastContext);
   const user = JSON.parse(localStorage.getItem('talenttrack_user') || '{}');
@@ -330,6 +331,58 @@ export default function HODDashboard() {
       case 'mentors':
         return <MentorManagementPanel mentors={mentors} fetchMentors={fetchMentors} addToast={addToast} handleReassign={handleReassign} />;
       case 'students':
+        if (selectedStudent) {
+          return (
+            <div>
+              <div className="section-header"><div className="section-title">Student Report</div></div>
+              <div className="animate-slideup">
+                <button className="btn btn-ghost btn-sm mb-16" onClick={() => setSelectedStudent(null)}>← Back to Student List</button>
+                <div className="grid-cols-2 mb-20">
+                  <div className="card">
+                    <div className="flex items-center gap-12 mb-16">
+                      <div className="user-avatar" style={{ width:'48px',height:'48px',fontSize:'1.2rem' }}>{(selectedStudent.name || 'ST').slice(0,2).toUpperCase()}</div>
+                      <div>
+                        <h3 style={{ margin: 0 }}>{selectedStudent.name}</h3>
+                        <div className="text-muted text-sm">{selectedStudent.email}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--card-border)' }}>
+                      <span className="text-muted text-sm">Class Details</span><strong>{selectedStudent.className || 'N/A'}</strong>
+                    </div>
+                    <div className="flex items-center justify-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--card-border)' }}>
+                      <span className="text-muted text-sm">Overall PRS</span><strong style={{ color: 'var(--color-green)' }}>{selectedStudent.prs || 0}</strong>
+                    </div>
+                    <div className="flex items-center justify-between" style={{ padding: '10px 0' }}>
+                      <span className="text-muted text-sm">Status</span><span className={`badge badge-${selectedStudent.isActive !== false ? 'success' : 'danger'}`}>{selectedStudent.isActive !== false ? 'Active' : 'Inactive'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="card">
+                    <h4 className="mb-16">Approved Milestones</h4>
+                    <div className="table-wrapper">
+                      <table>
+                        <thead><tr><th>Title</th><th>Category</th><th>Points</th></tr></thead>
+                        <tbody>
+                          {milestones.filter(m => (m.studentId === selectedStudent._id || m.studentId === selectedStudent.id) && m.status === 'APPROVED').length === 0 ? (
+                            <tr><td colSpan="3" className="text-center text-muted" style={{ padding: '24px' }}>No approved milestones yet.</td></tr>
+                          ) : (
+                            milestones.filter(m => (m.studentId === selectedStudent._id || m.studentId === selectedStudent.id) && m.status === 'APPROVED').map((m, i) => (
+                              <tr key={i}>
+                                <td><strong>{m.title}</strong></td>
+                                <td><span className="badge badge-neutral">{m.category}</span></td>
+                                <td><span className="badge badge-purple">+{m.points || 0}</span></td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
         return (
           <div>
             <div className="section-header"><div className="section-title">Student Reports</div></div>
@@ -352,10 +405,10 @@ export default function HODDashboard() {
             <div className="card">
               <div className="table-wrapper">
                 <table>
-                  <thead><tr><th>Student</th><th>Roll No & Class</th><th>Mentor</th><th>PRS Score</th><th>Risk Level</th></tr></thead>
+                  <thead><tr><th>Student</th><th>Roll No & Class</th><th>Mentor</th><th>PRS Score</th><th>Risk Level</th><th>Action</th></tr></thead>
                   <tbody>
                     {filteredStudents.length === 0 ? (
-                      <tr><td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No students match the filters.</td></tr>
+                      <tr><td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No students match the filters.</td></tr>
                     ) : (
                       filteredStudents.map((s, idx) => {
                         const isAtRisk = (s.prs || 0) < 50;
@@ -373,6 +426,9 @@ export default function HODDashboard() {
                             <td><span className={`badge badge-${isAtRisk ? 'danger' : 'success'}`}>{s.prs || 0}</span></td>
                             <td>
                               {isAtRisk ? <span className="badge badge-danger">High Risk</span> : <span className="badge badge-success">On Track</span>}
+                            </td>
+                            <td>
+                              <button className="btn btn-ghost btn-sm" onClick={() => setSelectedStudent(s)}>View Report</button>
                             </td>
                           </tr>
                         );

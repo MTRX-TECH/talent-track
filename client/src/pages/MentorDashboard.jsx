@@ -192,7 +192,7 @@ function InternshipReviewsPanel({ addToast }) {
   );
 }
 
-function StudentsPanel({ addToast }) {
+function StudentsPanel({ addToast, milestones = [] }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [importLoading, setImportLoading] = useState(false);
@@ -309,6 +309,28 @@ function StudentsPanel({ addToast }) {
               </div>
               <div className="flex items-center justify-between" style={{ padding: '10px 0' }}>
                 <span className="text-muted text-sm">Status</span><span className={`badge badge-${selectedStudent.isActive ? 'success' : 'danger'}`}>{selectedStudent.isActive ? 'Active' : 'Inactive'}</span>
+              </div>
+            </div>
+            
+            <div className="card">
+              <h4 className="mb-16">Approved Milestones</h4>
+              <div className="table-wrapper">
+                <table>
+                  <thead><tr><th>Title</th><th>Category</th><th>Points</th></tr></thead>
+                  <tbody>
+                    {milestones.filter(m => (m.studentId === selectedStudent._id || m.studentId === selectedStudent.id) && m.status === 'APPROVED').length === 0 ? (
+                      <tr><td colSpan="3" className="text-center text-muted" style={{ padding: '24px' }}>No approved milestones yet.</td></tr>
+                    ) : (
+                      milestones.filter(m => (m.studentId === selectedStudent._id || m.studentId === selectedStudent.id) && m.status === 'APPROVED').map((m, i) => (
+                        <tr key={i}>
+                          <td><strong>{m.title}</strong></td>
+                          <td><span className="badge badge-neutral">{m.category}</span></td>
+                          <td><span className="badge badge-purple">+{m.points || 0}</span></td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -657,7 +679,7 @@ export default function MentorDashboard() {
     switch (activePanel) {
       case 'queue':       return <VerificationQueue addToast={addToast} />;
       case 'internships': return <InternshipReviewsPanel addToast={addToast} />;
-      case 'students':    return <StudentsPanel addToast={addToast} />;
+      case 'students':    return <StudentsPanel addToast={addToast} milestones={milestones} />;
       case 'assessments': return <AssessmentsPanel addToast={addToast} />;
       case 'messages':    return <ParentQueriesPanel addToast={addToast} />;
       default: return (
