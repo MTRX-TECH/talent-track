@@ -17,9 +17,26 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security & Middleware Stack
-app.use(helmet({
-  contentSecurityPolicy: false
-}));
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+
+// 1. Global Rate Limiting (Prevents DDoS / Scraping)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // Limit each IP to 500 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+app.use(globalLimiter);
+
+// 2. HTTP Header Security
+app.use(helmet()); // Uses strict defaults including CSP
+
+// 3. Prevent NoSQL Injection
+app.use(mongoSanitize());
+
+// 4. Prevent XSS (Cross-Site Scripting)
+app.use(xss());
 
 app.use(cors({
   origin: true,

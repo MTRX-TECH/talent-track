@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per `window` (here, per 15 minutes)
+  message: { success: false, message: 'Too many login attempts from this IP, please try again after 15 minutes' }
+});
 
 const authController = require('../controllers/authController');
 const tenantController = require('../controllers/tenantController');
@@ -58,7 +65,7 @@ router.get('/healthcheck', (req, res) => {
 });
 
 // Auth Routes
-router.post('/auth/login', resolveTenantContext, authController.login);
+router.post('/auth/login', loginLimiter, resolveTenantContext, authController.login);
 router.post('/auth/request-otp', authController.requestPasswordResetOtp);
 router.post('/auth/forgot-password', authController.forgotPasswordDirect);
 router.post('/auth/refresh', resolveTenantContext, authController.refreshToken);
