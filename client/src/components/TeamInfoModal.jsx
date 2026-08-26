@@ -93,6 +93,31 @@ export default function TeamInfoModal({ isOpen, onClose }) {
             </div>
           </div>
 
+          <div className="flex items-center gap-16 mb-24" style={{ 
+            padding: '16px', 
+            background: 'linear-gradient(145deg, var(--bg-dark) 0%, rgba(15, 23, 42, 0.4) 100%)', 
+            borderRadius: '16px', 
+            border: '1px solid var(--card-border)',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05)',
+            marginTop: '-12px'
+          }}>
+            <div style={{ 
+              width: '48px', height: '48px', 
+              borderRadius: '14px', 
+              background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              color: '#fff',
+              boxShadow: '0 8px 16px rgba(236, 72, 153, 0.25)'
+            }}>
+               <Star size={24} fill="currentColor" />
+            </div>
+            <div>
+              <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text-main)', letterSpacing: '0.02em' }}>MANU SHREE M</div>
+              <div style={{ fontSize: '0.8rem', color: '#ec4899', fontWeight: '600', marginTop: '2px' }}>Lead Web Designer</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>UI/UX & DESIGN</div>
+            </div>
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
             <div style={{ height: '1px', flex: 1, background: 'var(--card-border)' }} />
             <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: '800', letterSpacing: '0.1em' }}>CORE ENGINEERING TEAM</span>
