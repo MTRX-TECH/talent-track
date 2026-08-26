@@ -75,7 +75,7 @@ const seedDatabase = async () => {
         username: 'founder@MTRX_TECH',
         passwordHash: superadminHash,
         role: 'superadmin',
-        tenantId: 'tenant-rit'
+        tenantId: 'SYSTEM_GLOBAL'
       },
       {
         name: 'Dr. Jane Smith',
