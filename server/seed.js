@@ -104,6 +104,15 @@ const seedDatabase = async () => {
         departmentId: dept._id
       },
       {
+        name: 'Prof. Sundhareswaran S.K',
+        email: 'faculty.cse@rit.edu',
+        username: 'faculty',
+        passwordHash: defaultHash,
+        role: 'faculty',
+        tenantId: 'tenant-rit',
+        departmentId: dept._id
+      },
+      {
         name: 'Student Alpha',
         email: 'alpha@univ.edu',
         username: 'student',

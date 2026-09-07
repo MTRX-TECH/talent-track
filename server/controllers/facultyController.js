@@ -2,16 +2,14 @@ const User = require('../models/User');
 
 exports.getFaculty = async (req, res) => {
   try {
-    const query = { role: { $in: ['mentor', 'hod', 'admin'] } };
+    const query = { role: { $in: ['mentor', 'hod', 'admin', 'faculty'] } };
     
-    // HODs should only see mentors. Admins see HODs.
     if (req.user.role === 'hod') {
-      query.role = 'mentor';
+      query.role = { $in: ['mentor', 'faculty'] };
     } else if (req.user.role === 'admin') {
       query.role = 'hod';
     }
 
-    // tenantId is automatically injected by tenantScopePlugin
     const faculty = await User.find(query).select('-passwordHash').sort({ createdAt: -1 });
     res.json({ success: true, faculty });
   } catch (err) {
@@ -32,9 +30,9 @@ exports.deleteFaculty = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
-    // HODs can only delete mentors
-    if (req.user.role === 'hod' && target.role !== 'mentor') {
-      return res.status(403).json({ success: false, message: "HODs are only authorized to delete mentors." });
+    // HODs can only delete mentors and faculty
+    if (req.user.role === 'hod' && target.role !== 'mentor' && target.role !== 'faculty') {
+      return res.status(403).json({ success: false, message: "HODs are only authorized to delete mentors and faculty." });
     }
 
     // Admins can only delete HODs

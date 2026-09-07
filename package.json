@@ -35,6 +35,7 @@
     "nodemailer": "^9.0.4",
     "pm2": "^7.0.3",
     "razorpay": "^2.9.8",
+    "string-similarity": "^4.0.4",
     "winston": "^3.13.1",
     "xlsx": "^0.18.5",
     "xss-clean": "^0.1.4"

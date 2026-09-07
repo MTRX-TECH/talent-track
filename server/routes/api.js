@@ -192,7 +192,7 @@ router.post('/excel/preview-import', resolveTenantContext, authMiddleware, check
 router.post('/excel/import', resolveTenantContext, authMiddleware, checkRole(['admin', 'hod', 'mentor', 'superadmin']), excelController.executeImport);
 
 // Faculty & Student Management Routes
-router.get('/faculty', resolveTenantContext, authMiddleware, checkRole(['admin', 'hod', 'superadmin']), facultyController.getFaculty);
+router.get('/faculty', resolveTenantContext, authMiddleware, checkRole(['admin', 'hod', 'superadmin', 'student']), facultyController.getFaculty);
 router.delete('/faculty/:id', resolveTenantContext, authMiddleware, checkRole(['admin', 'hod', 'superadmin']), facultyController.deleteFaculty);
 
 router.get('/students', resolveTenantContext, authMiddleware, checkRole(['admin', 'hod', 'mentor', 'superadmin']), studentController.getStudents);
@@ -207,5 +207,20 @@ router.post('/assessments/attempt', resolveTenantContext, authMiddleware, checkR
 
 // Analytics & PRS Route
 router.get('/analytics/prs', resolveTenantContext, authMiddleware, analyticsController.getStudentPRS);
+
+// Materials & Daily Topics Routes
+const materialsController = require('../controllers/materialsController');
+const topicMatcherController = require('../controllers/topicMatcherController');
+
+// Faculty Materials
+router.post('/materials', resolveTenantContext, authMiddleware, checkRole(['faculty']), materialsController.uploadMaterial);
+router.get('/materials/faculty', resolveTenantContext, authMiddleware, checkRole(['faculty']), materialsController.getFacultyMaterials);
+router.get('/materials/student', resolveTenantContext, authMiddleware, checkRole(['student']), materialsController.getMaterialsForStudent);
+
+// Daily Topics (AI Matcher)
+router.get('/topics/faculty', resolveTenantContext, authMiddleware, checkRole(['faculty']), topicMatcherController.getFacultyTopics);
+router.post('/topics/faculty', resolveTenantContext, authMiddleware, checkRole(['faculty']), topicMatcherController.submitFacultyTopics);
+router.post('/topics/student', resolveTenantContext, authMiddleware, checkRole(['student']), topicMatcherController.submitStudentTopics);
+router.get('/topics/flagged', resolveTenantContext, authMiddleware, checkRole(['mentor']), topicMatcherController.getFlaggedStudents);
 
 module.exports = router;

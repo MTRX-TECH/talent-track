@@ -652,6 +652,61 @@ function ParentQueriesPanel({ addToast }) {
   );
 }
 
+function ClassAlertsPanel() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiFetch('/topics/flagged').then(r => setLogs(r.flaggedLogs || [])).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      <div className="section-header">
+        <div className="section-title">Class Monitoring Alerts</div>
+        <span className="badge badge-warning">{logs.length} Flagged</span>
+      </div>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.9rem' }}>
+        These are instances where a student's daily submitted topics did not sufficiently match what the faculty taught.
+      </p>
+      {loading ? <div className="skeleton skeleton-card" /> : logs.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon"><CheckCircle size={28} color="var(--color-green)" /></div>
+          <h3>No alerts</h3>
+          <p>All your students are properly tracking their daily class topics.</p>
+        </div>
+      ) : (
+        <div className="grid-cols-2">
+          {logs.map((log, i) => (
+            <div key={i} className="card" style={{ borderLeft: '4px solid var(--color-amber)' }}>
+              <div className="flex items-center justify-between mb-8">
+                <strong style={{ fontSize: '1.05rem' }}>{log.studentId?.name}</strong>
+                <span className="badge badge-neutral">{log.className}</span>
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                Roll No: {log.studentId?.rollNumber}
+              </div>
+              <div style={{ fontSize: '0.85rem', marginBottom: '8px' }}>
+                <span style={{ fontWeight: '600' }}>Faculty:</span> {log.facultyId?.name}
+              </div>
+              <div style={{ fontSize: '0.85rem', marginBottom: '8px' }}>
+                <span style={{ fontWeight: '600' }}>Date:</span> {new Date(log.date).toLocaleDateString()}
+              </div>
+              <div style={{ background: 'var(--bg-dark)', padding: '8px', borderRadius: '4px', fontSize: '0.85rem', marginBottom: '12px' }}>
+                <span style={{ fontWeight: '600', color: 'var(--color-amber)' }}>Match Score: {(log.matchPercentage * 100).toFixed(0)}%</span>
+              </div>
+              <div style={{ fontSize: '0.85rem' }}>
+                <span style={{ fontWeight: '600' }}>Submitted Topics:</span><br/>
+                <span style={{ color: 'var(--text-muted)' }}>{log.studentTopics?.join(', ')}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MentorDashboard() {
   const [activePanel, setActivePanel] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
@@ -682,6 +737,7 @@ export default function MentorDashboard() {
       case 'students':    return <StudentsPanel addToast={addToast} milestones={milestones} />;
       case 'assessments': return <AssessmentsPanel addToast={addToast} />;
       case 'messages':    return <ParentQueriesPanel addToast={addToast} />;
+      case 'alerts':      return <ClassAlertsPanel />;
       default: return (
         <div>
           <div className="page-header">

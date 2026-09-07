@@ -16,6 +16,8 @@ const apiRoutes = require('./server/routes/api');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set('trust proxy', 1); // Trust first proxy (essential for rate limiting behind PM2/NGINX)
+
 // Security & Middleware Stack
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');

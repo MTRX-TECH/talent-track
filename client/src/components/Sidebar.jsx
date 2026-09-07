@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import {
   LayoutDashboard, Award, Briefcase, Building, BookOpen, BadgeCheck,
   Bot, Target, Trophy, Users, BarChart3, Settings, ShieldCheck,
-  GraduationCap, ClipboardList, FileText, LogOut, ChevronRight, Sparkles, Info, MessageSquare, PanelLeftClose, PanelLeft
+  GraduationCap, ClipboardList, FileText, LogOut, ChevronRight, Sparkles, Info, MessageSquare, PanelLeftClose, PanelLeft, CheckCircle
 } from 'lucide-react';
 import TeamInfoModal from './TeamInfoModal';
 
@@ -13,6 +13,10 @@ const NAV_CONFIG = {
       { id: 'dashboard',   label: 'Dashboard',        icon: LayoutDashboard },
       { id: 'drives',      label: 'Placement Drives', icon: Briefcase },
       { id: 'milestones',  label: 'My Milestones',    icon: Award },
+    ]},
+    { label: 'ACADEMICS', items: [
+      { id: 'materials',   label: 'Class Materials',  icon: BookOpen },
+      { id: 'topics',      label: 'Daily Topics',     icon: CheckCircle },
     ]},
     { label: 'CAREER', items: [
       { id: 'internships', label: 'My Internships',   icon: Building },
@@ -35,13 +39,14 @@ const NAV_CONFIG = {
       { id: 'students',    label: 'My Students',        icon: Users },
       { id: 'assessments', label: 'Assessments',        icon: BookOpen },
       { id: 'messages',    label: 'Parent Queries',     icon: MessageSquare },
+      { id: 'alerts',      label: 'Class Alerts',       icon: CheckCircle },
     ]},
   ],
   hod: [
     { label: 'MAIN', items: [
       { id: 'dashboard',   label: 'Department Overview', icon: LayoutDashboard },
       { id: 'analytics',   label: 'Analytics & Reports', icon: BarChart3 },
-      { id: 'mentors',     label: 'Mentor Management',   icon: Users },
+      { id: 'mentors',     label: 'Staff Management',    icon: Users },
     ]},
     { label: 'OPERATIONS', items: [
       { id: 'students',    label: 'Student Reports',     icon: GraduationCap },

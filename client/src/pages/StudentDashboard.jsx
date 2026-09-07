@@ -654,6 +654,122 @@ function AIPanel({ addToast }) {
   );
 }
 
+function ClassMaterialsPanel() {
+  const [materials, setMaterials] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiFetch('/materials/student').then(r => setMaterials(r.materials || [])).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      <div className="section-header">
+        <div className="section-title">Class Materials</div>
+      </div>
+      {loading ? <div className="skeleton skeleton-card" /> : materials.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon"><BookOpen size={28} /></div>
+          <h3>No materials available</h3>
+          <p>Your faculty has not uploaded any notes or assignments yet.</p>
+        </div>
+      ) : (
+        <div className="grid-cols-2">
+          {materials.map((m, i) => (
+            <div key={i} className="card">
+              <div className="flex items-center justify-between mb-8">
+                <h4 style={{ fontWeight: '700' }}>{m.title}</h4>
+                <span className={`badge ${m.materialType === 'note' ? 'badge-primary' : 'badge-warning'}`}>{m.materialType.toUpperCase()}</span>
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Faculty: {m.facultyId?.name} | Date: {new Date(m.createdAt).toLocaleDateString()}</div>
+              {m.description && <p style={{ fontSize: '0.85rem', marginTop: '8px' }}>{m.description}</p>}
+              {m.fileData && <a href={m.fileData} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm mt-8" style={{ display: 'inline-block' }}><Download size={14} /> Download / View</a>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DailyTopicsPanel({ addToast }) {
+  const [facultyList, setFacultyList] = useState([]);
+  const [form, setForm] = useState({ facultyId: '', date: new Date().toISOString().split('T')[0], topics: '' });
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch faculty list
+    apiFetch('/faculty').then(r => setFacultyList(r.faculty || [])).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const studentTopics = form.topics.split(',').map(t => t.trim()).filter(t => t);
+      const res = await apiFetch('/topics/student', {
+        method: 'POST',
+        body: JSON.stringify({
+          facultyId: form.facultyId,
+          className: 'CSE A', // Assuming hardcoded for demo, normally from user profile
+          date: form.date,
+          studentTopics
+        })
+      });
+      setResult(res);
+      addToast(res.status === 'acceptable' ? 'success' : 'warning', 'Topics Submitted', `Match: ${(res.matchPercentage * 100).toFixed(0)}%`);
+    } catch (err) {
+      addToast('error', 'Submission Failed', err.message);
+    }
+  };
+
+  return (
+    <div>
+      <div className="section-header">
+        <div className="section-title">Daily Topic Submission</div>
+      </div>
+      <div className="card mb-24">
+        <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.9rem' }}>
+          Enter the headings of the topics taught by your faculty today. Your submission is matched using AI string similarity against the faculty's logs. A match of &ge; 60% is acceptable.
+        </p>
+        <form onSubmit={handleSubmit}>
+          <div className="grid-cols-2" style={{ gap: '16px', marginBottom: '16px' }}>
+            <div className="form-group">
+              <label>Faculty</label>
+              <select value={form.facultyId} onChange={e => setForm(f => ({...f, facultyId: e.target.value}))} required>
+                <option value="">Select Faculty...</option>
+                {facultyList.map(f => <option key={f._id} value={f._id}>{f.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Date</label>
+              <input type="date" value={form.date} onChange={e => setForm(f => ({...f, date: e.target.value}))} required />
+            </div>
+          </div>
+          <div className="form-group mb-16">
+            <label>Topics Taught (Comma Separated)</label>
+            <textarea value={form.topics} onChange={e => setForm(f => ({...f, topics: e.target.value}))} rows="3" placeholder="e.g. Introduction to AI, Neural Networks" required />
+          </div>
+          <button type="submit" className="btn btn-primary"><Send size={14} /> Submit Topics</button>
+        </form>
+
+        {result && (
+          <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-dark)', borderRadius: '8px', borderLeft: `4px solid ${result.status === 'acceptable' ? 'var(--color-green)' : 'var(--color-amber)'}` }}>
+            <h4 style={{ color: 'var(--text-main)' }}>Verification Result</h4>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginTop: '8px' }}>
+              Match Score: {(result.matchPercentage * 100).toFixed(0)}%
+            </div>
+            <span className={`badge badge-${result.status === 'acceptable' ? 'success' : 'warning'}`} style={{ marginTop: '8px' }}>
+              Status: {result.status.toUpperCase()}
+            </span>
+            {result.status === 'flagged' && <p style={{ color: 'var(--color-amber)', fontSize: '0.85rem', marginTop: '8px' }}>Your submission did not meet the 60% threshold and has been flagged to your mentor.</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function StudentDashboard() {
   const [activePanel, setActivePanel] = useState('dashboard');
@@ -692,6 +808,8 @@ export default function StudentDashboard() {
       case 'goals':       return <GoalsPanel addToast={addToast} />;
       case 'leaderboard': return <LeaderboardPanel />;
       case 'ai':          return <AIPanel addToast={addToast} />;
+      case 'materials':   return <ClassMaterialsPanel addToast={addToast} />;
+      case 'topics':      return <DailyTopicsPanel addToast={addToast} />;
       default:            return <OverviewPanel user={user} prs={prs} isAlumni={isAlumni} setActivePanel={setActivePanel} />;
     }
   };

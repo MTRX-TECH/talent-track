@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Shield, Building, UserCheck, GraduationCap, Users, LogIn, Sparkles, ChevronRight, Lock } from 'lucide-react';
+import { Shield, Building, UserCheck, GraduationCap, Users, LogIn, Sparkles, ChevronRight, Lock, BookOpen, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch, setToken } from '../services/api';
 import { ToastContext } from '../App';
@@ -12,9 +12,10 @@ const ROLES = [
   { id: 'superadmin', label: 'Super Admin',  icon: Shield,        desc: 'Platform level' },
   { id: 'admin',      label: 'Admin',         icon: Building,      desc: 'Institution' },
   { id: 'hod',        label: 'HOD',           icon: UserCheck,     desc: 'Department head' },
-  { id: 'mentor',     label: 'Mentor',        icon: Users,         desc: 'Faculty guide' },
+  { id: 'mentor',     label: 'Mentor',        icon: Users,         desc: 'Student guide' },
+  { id: 'faculty',    label: 'Faculty',       icon: BookOpen,      desc: 'Class materials' },
   { id: 'student',    label: 'Student',       icon: GraduationCap, desc: 'Learner portal' },
-  { id: 'parent',     label: 'Parent',        icon: Users,         desc: 'Family access' },
+  { id: 'parent',     label: 'Parent',        icon: Heart,         desc: 'Monitor progress' }
 ];
 
 export default function Login() {

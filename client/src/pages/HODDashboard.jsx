@@ -111,14 +111,21 @@ function MentorManagementPanel({ mentors, fetchMentors, addToast, handleReassign
 
       {showManualForm && !generatedCredentials && (
         <div className="card mb-20 animate-slideup">
-          <h3 style={{ marginBottom: '16px' }}>Create Department Mentor</h3>
+          <h3 style={{ marginBottom: '16px' }}>Create Department Staff</h3>
           <form onSubmit={handleManualCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
               <div className="form-group"><label className="form-label">Full Name</label><input value={manualForm.name} onChange={e => setManualForm(f=>({...f,name:e.target.value}))} required placeholder="Dr. John Doe" /></div>
-              <div className="form-group"><label className="form-label">Email Address</label><input type="email" value={manualForm.email} onChange={e => setManualForm(f=>({...f,email:e.target.value}))} required placeholder="mentor@univ.edu" /></div>
+              <div className="form-group"><label className="form-label">Email Address</label><input type="email" value={manualForm.email} onChange={e => setManualForm(f=>({...f,email:e.target.value}))} required placeholder="staff@univ.edu" /></div>
+              <div className="form-group">
+                <label className="form-label">Role</label>
+                <select value={manualForm.role} onChange={e => setManualForm(f=>({...f,role:e.target.value}))}>
+                  <option value="mentor">Mentor</option>
+                  <option value="faculty">Faculty</option>
+                </select>
+              </div>
             </div>
             <div className="flex gap-8 mt-8">
-              <button type="submit" className="btn btn-primary btn-sm" disabled={importLoading}>{importLoading ? 'Creating...' : 'Create Mentor'}</button>
+              <button type="submit" className="btn btn-primary btn-sm" disabled={importLoading}>{importLoading ? 'Creating...' : 'Create Account'}</button>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowManualForm(false)}>Cancel</button>
             </div>
           </form>
@@ -127,8 +134,8 @@ function MentorManagementPanel({ mentors, fetchMentors, addToast, handleReassign
 
       {!generatedCredentials && !showManualForm && (
       <div className="card mb-20">
-        <h3>Add Mentors</h3>
-        <p className="text-muted text-sm mb-16">Upload a CSV or Excel file containing mentor details or create one manually.</p>
+        <h3>Add Mentors & Faculty</h3>
+        <p className="text-muted text-sm mb-16">Upload a CSV or Excel file containing staff details (ensure role column specifies mentor or faculty) or create one manually.</p>
         {!preview ? (
           <div className="flex gap-8">
             <label className={`btn btn-primary ${importLoading ? 'disabled' : ''}`} style={{ cursor: 'pointer' }}>
@@ -169,12 +176,13 @@ function MentorManagementPanel({ mentors, fetchMentors, addToast, handleReassign
       <div className="card">
         <div className="table-wrapper">
           <table>
-            <thead><tr><th>Mentor Name</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th>Staff Name</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
             <tbody>
               {mentors.map((m, i) => (
                 <tr key={m._id || i}>
                   <td><strong>{m.name}</strong></td>
                   <td className="text-muted">{m.email}</td>
+                  <td><span className="badge badge-neutral" style={{textTransform:'capitalize'}}>{m.role}</span></td>
                   <td><span className={`badge badge-${m.isActive ? 'success' : 'danger'}`}>{m.isActive ? 'Active' : 'Inactive'}</span></td>
                   <td>
                     <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-red)' }} onClick={() => handleDelete(m._id)}>
@@ -184,7 +192,7 @@ function MentorManagementPanel({ mentors, fetchMentors, addToast, handleReassign
                 </tr>
               ))}
               {mentors.length === 0 && (
-                <tr><td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No mentors assigned to this department yet.</td></tr>
+                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No staff assigned to this department yet.</td></tr>
               )}
             </tbody>
           </table>

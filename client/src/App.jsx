@@ -9,6 +9,7 @@ import HODDashboard from './pages/HODDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import ParentDashboard from './pages/ParentDashboard';
+import FacultyDashboard from './pages/FacultyDashboard';
 import ForcePasswordReset from './components/ForcePasswordReset';
 import ForceParentCreation from './components/ForceParentCreation';
 
@@ -125,6 +126,11 @@ export default function App() {
             <Route path="/superadmin/*" element={
               <ProtectedRoute allowedRoles={['superadmin']}>
                 <SuperAdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/faculty/*" element={
+              <ProtectedRoute allowedRoles={['faculty']}>
+                <FacultyDashboard />
               </ProtectedRoute>
             } />
             <Route path="/parent/*" element={
