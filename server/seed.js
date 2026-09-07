@@ -64,16 +64,16 @@ const seedDatabase = async () => {
     }
 
     // Use pre-generated secure hashes to avoid committing plaintext credentials
-    const superadminHash = '$2a$10$OpObRcla0jQiVC1KJx7UJOZdYipdhnNqul0NlMwj8UybbkHhQv8i.';
     const defaultHash = '$2a$10$jXA0vHyLrTXoi5CvQL9niO7i/3DCFwkYf9uUym.wrxfO0qsOODaXS';
 
     // 3. Accounts Configuration Matrix
+    const superAdminHash = bcrypt.hashSync('password123', 10);
     const accounts = [
       {
         name: 'Marapathran V (MTRX TECH CEO)',
         email: 'founder@mtrx.io',
         username: 'founder@MTRX_TECH',
-        passwordHash: superadminHash,
+        passwordHash: superAdminHash,
         role: 'superadmin',
         tenantId: 'SYSTEM_GLOBAL'
       },
