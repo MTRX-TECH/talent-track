@@ -71,8 +71,8 @@ const seedDatabase = async () => {
     const accounts = [
       {
         name: 'Marapathran V (MTRX TECH CEO)',
-        email: 'founder@mtrx.io',
-        username: 'founder@MTRX_TECH',
+        email: 'marapathranv@gmail.com',
+        username: 'marapathranv@gmail.com',
         passwordHash: superAdminHash,
         role: 'superadmin',
         tenantId: 'SYSTEM_GLOBAL'
@@ -266,13 +266,13 @@ const seedDatabase = async () => {
       }
     }
 
-    console.log('=======================================================');
-    console.log('🎉 DATABASE SEEDING COMPLETED SUCCESSFULLY!');
-    console.log('=======================================================');
-    console.log('Super Admin Credentials:');
-    console.log('  • Username : founder@MTRX_TECH');
-    console.log('  • Password : [See Secure Credentials Block]');
-    console.log('=======================================================');
+      console.log('=======================================================');
+      console.log('✅ DATABASE SEEDING COMPLETED SUCCESSFULLY!');
+      console.log('=======================================================');
+      console.log('Super Admin Credentials:');
+      console.log('  ▶ Username : marapathranv@gmail.com');
+      console.log('  ▶ Password : [See Secure Credentials Block]');
+      console.log('=======================================================');
 
   } catch (err) {
     console.error('[SEED ERROR]', err.message);
