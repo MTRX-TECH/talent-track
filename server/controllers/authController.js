@@ -219,18 +219,18 @@ exports.requestPasswordResetOtp = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { resetOtp: otp, resetOtpExpiry: expiry }, 'global');
+    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { resetOtp: otp, resetOtpExpiry: expiry }, user.tenantId);
 
-    if (process.env.SMTP_USER) {
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"TalentTrack Support" <noreply@talenttrack.com>',
-        to: user.email,
-        subject: 'Password Reset OTP',
-        text: `Your password reset OTP is ${otp}. It will expire in 10 minutes.`
-      }).catch(console.error);
-    } else {
-      console.log(`\n\n[DEV_MODE] OTP for ${user.email} is: ${otp}\n\n`);
+    if (!process.env.SMTP_USER) {
+      throw new Error("SMTP server is not configured. Cannot send password reset email.");
     }
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || '"TalentTrack Support" <noreply@talenttrack.com>',
+      to: user.email,
+      subject: 'Password Reset OTP',
+      text: `Your password reset OTP is ${otp}. It will expire in 10 minutes.`
+    });
 
     res.json({ success: true, message: 'OTP sent to email.' });
   } catch (err) {
@@ -255,7 +255,7 @@ exports.forgotPasswordDirect = async (req, res) => {
     const passwordHash = bcrypt.hashSync(newPassword, 10);
     
     // Update their password and clear OTP
-    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { passwordHash, resetOtp: null, resetOtpExpiry: null }, 'global');
+    await dataService.updateOne('users', { _id: user._id, bypassTenantScope: true }, { passwordHash, resetOtp: null, resetOtpExpiry: null }, user.tenantId);
     
     // Log the action
     await dataService.create('auditLogs', {

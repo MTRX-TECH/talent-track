@@ -66,8 +66,11 @@ const seedDatabase = async () => {
     // Use pre-generated secure hashes to avoid committing plaintext credentials
     const defaultHash = '$2a$10$jXA0vHyLrTXoi5CvQL9niO7i/3DCFwkYf9uUym.wrxfO0qsOODaXS';
 
+    const crypto = require('crypto');
+    const tempSuperAdminPassword = crypto.randomBytes(8).toString('hex');
+    const superAdminHash = bcrypt.hashSync(tempSuperAdminPassword, 10);
+    
     // 3. Accounts Configuration Matrix
-    const superAdminHash = bcrypt.hashSync('password123', 10);
     const accounts = [
       {
         name: 'Marapathran V (MTRX TECH CEO)',
@@ -75,7 +78,9 @@ const seedDatabase = async () => {
         username: 'marapathranv@gmail.com',
         passwordHash: superAdminHash,
         role: 'superadmin',
-        tenantId: 'SYSTEM_GLOBAL'
+        tenantId: 'SYSTEM_GLOBAL',
+        needsPasswordChange: true,
+        tempPasswordForLogging: tempSuperAdminPassword // Used for console output later
       },
       {
         name: 'Dr. Jane Smith',
@@ -133,7 +138,17 @@ const seedDatabase = async () => {
       }
     ];
 
+    let superAdminTempPassword = null;
+
     for (const acc of accounts) {
+      const tempPass = acc.tempPasswordForLogging;
+      if (tempPass) {
+        if (acc.role === 'superadmin') {
+          superAdminTempPassword = tempPass;
+        }
+        delete acc.tempPasswordForLogging;
+      }
+      
       const existing = await User.findOne({ username: acc.username, tenantId: acc.tenantId });
       if (!existing) {
         await User.create({
@@ -143,6 +158,9 @@ const seedDatabase = async () => {
         console.log(`[SEED] Created ${acc.role.toUpperCase()} Account: ${acc.username}`);
       } else {
         existing.passwordHash = acc.passwordHash;
+        if (acc.needsPasswordChange) {
+           existing.needsPasswordChange = true;
+        }
         await existing.save();
         console.log(`[SEED] Updated password for ${acc.username}`);
       }
@@ -269,9 +287,10 @@ const seedDatabase = async () => {
       console.log('=======================================================');
       console.log('✅ DATABASE SEEDING COMPLETED SUCCESSFULLY!');
       console.log('=======================================================');
-      console.log('Super Admin Credentials:');
+      console.log('Super Admin Credentials (TEMPORARY):');
       console.log('  ▶ Username : marapathranv@gmail.com');
-      console.log('  ▶ Password : [See Secure Credentials Block]');
+      console.log(`  ▶ Password : ${superAdminTempPassword || '[Generated previously. Run seed to reset.]'}`);
+      console.log('  ▶ Note     : You will be prompted to reset this password upon first login.');
       console.log('=======================================================');
 
   } catch (err) {

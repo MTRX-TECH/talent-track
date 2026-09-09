@@ -64,6 +64,7 @@ html[data-role="superadmin"] { --role-primary:#ef4444; --role-glow:rgba(239,68,6
 html[data-role="admin"]      { --role-primary:#f59e0b; --role-glow:rgba(245,158,11,0.22); --role-glow-lg:rgba(245,158,11,0.1); }
 html[data-role="hod"]        { --role-primary:#a855f7; --role-glow:rgba(168,85,247,0.22); --role-glow-lg:rgba(168,85,247,0.1); }
 html[data-role="mentor"]     { --role-primary:#22c55e; --role-glow:rgba(34,197,94,0.22);  --role-glow-lg:rgba(34,197,94,0.1); }
+html[data-role="faculty"]    { --role-primary:#ec4899; --role-glow:rgba(236,72,153,0.22); --role-glow-lg:rgba(236,72,153,0.1); }
 html[data-role="student"]    { --role-primary:#3b82f6; --role-glow:rgba(59,130,246,0.22); --role-glow-lg:rgba(59,130,246,0.1); }
 html[data-role="parent"]     { --role-primary:#14b8a6; --role-glow:rgba(20,184,166,0.22); --role-glow-lg:rgba(20,184,166,0.1); }
 
@@ -787,7 +788,7 @@ tbody tr:hover td { background: var(--glass-overlay); color: var(--text-main); }
 }
 
 .role-grid {
-  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
   margin-bottom: 24px;
 }
 

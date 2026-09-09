@@ -19,7 +19,6 @@ const departmentController = require('../controllers/departmentController');
 const excelController = require('../controllers/excelController');
 const facultyController = require('../controllers/facultyController');
 const studentController = require('../controllers/studentController');
-
 // Phase 1 Controllers
 const placementController = require('../controllers/placementController');
 const companyController = require('../controllers/companyController');

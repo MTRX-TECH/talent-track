@@ -42,6 +42,15 @@ const NAV_CONFIG = {
       { id: 'alerts',      label: 'Class Alerts',       icon: CheckCircle },
     ]},
   ],
+  faculty: [
+    { label: 'MAIN', items: [
+      { id: 'dashboard',   label: 'Dashboard',        icon: LayoutDashboard },
+    ]},
+    { label: 'ACADEMICS', items: [
+      { id: 'materials',   label: 'Class Materials',  icon: BookOpen },
+      { id: 'topics',      label: 'Daily Topics',     icon: CheckCircle },
+    ]},
+  ],
   hod: [
     { label: 'MAIN', items: [
       { id: 'dashboard',   label: 'Department Overview', icon: LayoutDashboard },
