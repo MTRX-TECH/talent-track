@@ -3,11 +3,11 @@
  * Developed by MTRX TECH — Founder & CEO: Marapathran V
  *
  * Capabilities:
- * 1. Multi-tier URI Candidate Fallback (Primary -> Fallback -> 127.0.0.1 -> localhost)
- * 2. Self-Healing Reconnection & Event-Driven Recovery
- * 3. In-flight Request Waiting (Never throws while connection is establishing)
+ * 1. Single-Flight Mutex Connection (Prevents concurrent thrashing & disconnect loops)
+ * 2. Multi-tier URI Candidate Fallback (Primary -> Fallback -> 127.0.0.1 -> localhost)
+ * 3. Graceful Polling Awaiter (waitForConnection: ensures requests pause and succeed instead of 503)
  * 4. Windows Service Healthcheck & Auto-Start Safeguard
- * 5. Credential-Sanitized Diagnostic Logging
+ * 5. Event-driven recovery without interrupting active connecting loops
  */
 
 const mongoose = require('mongoose');
@@ -26,18 +26,19 @@ function sanitizeMongoUri(uri) {
 
 function getCandidateUris() {
   const uris = [];
-  if (process.env.MONGODB_URI) {
-    uris.push(process.env.MONGODB_URI.trim());
-  }
-  if (process.env.MONGODB_URI_FALLBACK) {
-    uris.push(process.env.MONGODB_URI_FALLBACK.trim());
-  }
-  
-  // Local IPv4 & hostname fallbacks to ensure local development always works
-  const localIpv4 = 'mongodb://127.0.0.1:27017/talenttrack';
-  const localHost = 'mongodb://localhost:27017/talenttrack';
-  if (!uris.includes(localIpv4)) uris.push(localIpv4);
-  if (!uris.includes(localHost)) uris.push(localHost);
+  const addUri = (u) => {
+    if (u && typeof u === 'string') {
+      const trimmed = u.trim();
+      if (trimmed && !uris.includes(trimmed)) {
+        uris.push(trimmed);
+      }
+    }
+  };
+
+  addUri(process.env.MONGODB_URI);
+  addUri(process.env.MONGODB_URI_FALLBACK);
+  addUri('mongodb://127.0.0.1:27017/talenttrack');
+  addUri('mongodb://localhost:27017/talenttrack');
 
   return uris;
 }
@@ -52,7 +53,7 @@ function checkAndStartWindowsMongoService() {
         console.log('[DB] MongoDB Windows service started successfully.');
       }
     } catch (_) {
-      // Non-fatal: user might be running MongoDB as a standalone process or docker
+      // Non-fatal: user might be running MongoDB via Docker or standalone binary
     }
   }
 }
@@ -66,27 +67,26 @@ function attachConnectionListeners() {
   });
 
   mongoose.connection.on('disconnected', () => {
-    console.warn('[DB] ⚠️ MongoDB Connection Dropped. Triggering auto-reconnect cycle...');
-    connectPromise = null;
-    isConnecting = false;
-    currentConnectedUri = null;
+    // Only schedule auto-reconnect if we are not actively in the middle of connectDB()
+    if (!isConnecting) {
+      console.warn('[DB] ⚠️ MongoDB Connection Dropped. Triggering auto-reconnect cycle...');
+      currentConnectedUri = null;
 
-    if (!reconnectTimer) {
-      reconnectTimer = setTimeout(async () => {
-        reconnectTimer = null;
-        try {
-          await connectDB({ timeout: 4000 });
-        } catch (e) {
-          console.error('[DB] Background auto-reconnect failed. Will retry on next request:', e.message);
-        }
-      }, 2000);
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(async () => {
+          reconnectTimer = null;
+          try {
+            await connectDB({ timeout: 4000 });
+          } catch (e) {
+            console.error('[DB] Background auto-reconnect failed. Will retry on next request:', e.message);
+          }
+        }, 2000);
+      }
     }
   });
 
   mongoose.connection.on('error', (err) => {
     console.error('[DB] ❌ MongoDB Connection Error:', err.message);
-    connectPromise = null;
-    isConnecting = false;
   });
 
   mongoose.connection.on('reconnected', () => {
@@ -100,7 +100,7 @@ async function connectDB(options = {}) {
     return mongoose;
   }
 
-  // 2. If a connection attempt is currently in-flight, await and return the existing promise
+  // 2. If a connection attempt is currently in-flight, return the shared promise
   if (isConnecting && connectPromise) {
     return await connectPromise;
   }
@@ -119,7 +119,9 @@ async function connectDB(options = {}) {
 
       try {
         console.log(`[DB] Attempting connection to: ${sanitizeMongoUri(uri)}...`);
-        if (mongoose.connection.readyState !== 0) {
+        
+        // Only disconnect if currently connected or connecting to a different instance
+        if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
           await mongoose.disconnect().catch(() => {});
         }
 
@@ -162,6 +164,27 @@ function isConnected() {
   return mongoose.connection.readyState === 1;
 }
 
+/**
+ * Robust waiter that pauses the request until DB connection is established.
+ * Prevents returning 503 during normal initialization or brief reconnects.
+ */
+async function waitForConnection(timeoutMs = 6000) {
+  if (mongoose.connection.readyState === 1) return true;
+
+  // Trigger connect if not already connecting
+  connectDB().catch(() => {});
+
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeoutMs) {
+    if (mongoose.connection.readyState === 1) {
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+
+  return mongoose.connection.readyState === 1;
+}
+
 function getConnectionStatus() {
   const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
   return {
@@ -175,6 +198,7 @@ function getConnectionStatus() {
 module.exports = {
   connectDB,
   isConnected,
+  waitForConnection,
   getConnectionStatus,
   sanitizeMongoUri
 };

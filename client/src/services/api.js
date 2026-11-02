@@ -29,6 +29,11 @@ export async function apiFetch(endpoint, options = {}, isRetry = false) {
 
     const data = await res.json();
     if (!res.ok) {
+      if (res.status === 503 && !isRetry) {
+        await new Promise(r => setTimeout(r, 1200));
+        return await apiFetch(endpoint, options, true);
+      }
+
       if (res.status === 401 && !isRetry && endpoint !== '/auth/login' && endpoint !== '/auth/refresh') {
         if (!isRefreshing) {
           isRefreshing = true;

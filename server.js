@@ -72,15 +72,13 @@ db.connectDB().catch((err) => {
 // API Gateway Subsystem with Auto-Reconnect & Health Check Mechanism
 app.use('/api', async (req, res, next) => {
   if (!db.isConnected()) {
-    try {
-      await db.connectDB({ timeout: 4000 });
-    } catch (_) {}
+    await db.waitForConnection(6000);
   }
 
   if (!db.isConnected()) {
     return res.status(503).json({
       success: false,
-      message: 'Database connection is initializing or reconnecting. Please retry in a few moments.'
+      message: 'Database connection is temporarily inactive. Please retry in a few moments.'
     });
   }
   next();
