@@ -13,12 +13,12 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 
+const db = require('./server/db');
 const apiRoutes = require('./server/routes/api');
 
 const app = express();
@@ -64,55 +64,24 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Serverless Connection Caching Pattern
-let cachedMongoose = global.mongoose;
-if (!cachedMongoose) {
-  cachedMongoose = global.mongoose = { conn: null, promise: null };
-}
+// Initialize resilient database connection (multi-candidate fallback + self-healing)
+db.connectDB().catch((err) => {
+  console.warn('[DATABASE BOOT WARNING] Initial connection deferred. Background recovery active:', err.message);
+});
 
-async function connectDB() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.error('❌ MONGODB_URI environment variable not found. Database connection inactive; local memory storage is disabled.');
-    return null;
-  }
-
-  if (cachedMongoose.conn) {
-    return cachedMongoose.conn;
-  }
-
-  if (!cachedMongoose.promise) {
-    console.log('Connecting to MongoDB Atlas...');
-    cachedMongoose.promise = mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000
-    }).then((m) => {
-      console.log('=======================================================');
-      console.log('🚀 TALENTTRACK ENTERPRISE MERN STACK ACTIVE');
-      console.log('⚡ Developed by MTRX TECH — Founder & CEO: Marapathran V');
-      console.log(`🌐 Server running at: http://localhost:${PORT}`);
-      console.log('=======================================================');
-      console.log('✅ MongoDB Atlas Connection Established Successfully.');
-      console.log('=======================================================');
-      return m;
-    }).catch((err) => {
-      console.error('❌ MongoDB Atlas Connection Timeout / Offline:', err.message || err);
-      console.error('⚠️ Database connection is inactive. Local memory saving option has been disabled per security policy; data operations will return explicit error messages.');
-      cachedMongoose.promise = null;
-      cachedMongoose.conn = null;
-      return null;
-    });
-  }
-
-  cachedMongoose.conn = await cachedMongoose.promise;
-  return cachedMongoose.conn;
-}
-
-connectDB();
-
-// API Gateway Subsystem with Auto-Reconnect Mechanism
+// API Gateway Subsystem with Auto-Reconnect & Health Check Mechanism
 app.use('/api', async (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    await connectDB();
+  if (!db.isConnected()) {
+    try {
+      await db.connectDB({ timeout: 4000 });
+    } catch (_) {}
+  }
+
+  if (!db.isConnected()) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database connection is initializing or reconnecting. Please retry in a few moments.'
+    });
   }
   next();
 }, apiRoutes);

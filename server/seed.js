@@ -21,12 +21,12 @@ const InterviewSchedule = require('./models/InterviewSchedule');
 const OfferLetter = require('./models/OfferLetter');
 const Internship = require('./models/Internship');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/talenttrack';
+const db = require('./db');
 
 const seedDatabase = async () => {
   try {
     console.log('[SEED] Connecting to MongoDB...');
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+    await db.connectDB();
     console.log('[SEED] Connected successfully.');
 
     // 1. Seed Tenant

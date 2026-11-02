@@ -2,9 +2,11 @@
  * TALENTTRACK ENTERPRISE — UNIFIED DATA ADAPTER SERVICE
  * Strictly connects to MongoDB Atlas / active database instances.
  * Local memory fallback and local saving have been entirely removed per institutional security policy.
+ * Equipped with self-healing auto-reconnection and candidate fallback via db.js.
  */
 
 const mongoose = require('mongoose');
+const db = require('../db');
 
 // Collection Name to Mongoose Model Mapping
 const models = {
@@ -37,11 +39,18 @@ const models = {
 };
 
 function isAtlasConnected() {
-  return mongoose.connection.readyState === 1;
+  return db.isConnected();
 }
 
-function ensureActiveDatabase() {
-  if (!isAtlasConnected()) {
+async function ensureActiveDatabase() {
+  if (db.isConnected()) {
+    return true;
+  }
+  try {
+    await db.connectDB({ timeout: 4000 });
+  } catch (_) {}
+
+  if (!db.isConnected()) {
     throw new Error('Database connection is currently inactive. Local memory saving is disabled; data cannot be saved or accessed locally.');
   }
 }
@@ -50,7 +59,7 @@ const dataService = {
   isAtlasConnected,
 
   async find(collectionName, filter = {}, tenantId = null) {
-    ensureActiveDatabase();
+    await ensureActiveDatabase();
     const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
     const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
     
@@ -75,7 +84,7 @@ const dataService = {
   },
 
   async findOne(collectionName, filter = {}, tenantId = null) {
-    ensureActiveDatabase();
+    await ensureActiveDatabase();
     const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
     const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
     
@@ -101,7 +110,7 @@ const dataService = {
   },
 
   async create(collectionName, itemData) {
-    ensureActiveDatabase();
+    await ensureActiveDatabase();
     if (!models[collectionName]) {
       throw new Error(`Model for collection '${collectionName}' does not exist.`);
     }
@@ -110,7 +119,7 @@ const dataService = {
   },
 
   async updateOne(collectionName, filter = {}, updateData = {}, tenantId = null) {
-    ensureActiveDatabase();
+    await ensureActiveDatabase();
     const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
     const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
     
@@ -135,7 +144,7 @@ const dataService = {
   },
 
   async deleteOne(collectionName, filter = {}, tenantId = null) {
-    ensureActiveDatabase();
+    await ensureActiveDatabase();
     const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
     const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
     
@@ -160,7 +169,7 @@ const dataService = {
   },
 
   async deleteMany(collectionName, filter = {}, tenantId = null) {
-    ensureActiveDatabase();
+    await ensureActiveDatabase();
     const isGlobal = ['tenants', 'platformSettings'].includes(collectionName);
     const finalFilter = (tenantId && !isGlobal) ? { tenantId, ...filter } : { ...filter };
     
